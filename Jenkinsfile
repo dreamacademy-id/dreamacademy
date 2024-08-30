@@ -9,7 +9,6 @@ pipeline {
         stage('build-docker') {
             steps {
                 sh 'pwd'
-                sh 'docker ps'
             }
         }
     }
