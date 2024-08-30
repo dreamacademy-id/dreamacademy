@@ -11,5 +11,10 @@ pipeline {
                 sh 'npm install'
             }
         }
+        stage('build-docker') {
+            steps {
+                sh 'docker build -t dreamacademy .'
+            }
+        }
     }
 }
