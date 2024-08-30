@@ -14,7 +14,7 @@ pipeline {
         stage('build-docker') {
             steps {
                 sh 'pwd'
-                sh 'whoami'
+                sh 'docker ps'
             }
         }
     }
