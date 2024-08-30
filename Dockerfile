@@ -1,37 +1,21 @@
-# Tahap 1: Build the application
-FROM node:18-alpine AS builder
-
-# Set working directory
+FROM node:20 AS base
 WORKDIR /app
+RUN npm i -g pnpm
+COPY package.json pnpm-lock.yaml ./
 
-# Copy package.json dan package-lock.json
-COPY package*.json ./
+RUN pnpm install
 
-# Install dependencies
-RUN npm install
-
-# Copy seluruh kode sumber ke dalam container
 COPY . .
+RUN pnpm build
 
-# Build aplikasi Next.js
-RUN npm run build
-
-# Tahap 2: Jalankan aplikasi yang sudah dibuild
-FROM node:18-alpine AS runner
-
-# Set working directory
+FROM node:20-alpine3.19 as release
 WORKDIR /app
+RUN npm i -g pnpm
 
-# Install 'serve' untuk melayani aplikasi Next.js yang sudah dibuild
-RUN npm install -g serve
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/package.json ./package.json
+COPY --from=base /app/.next ./.next
 
-# Copy hasil build dari tahap sebelumnya
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-# Expose port 3000 untuk akses aplikasi
 EXPOSE 3000
 
-# Jalankan aplikasi Next.js menggunakan 'serve'
-CMD ["serve", "-s", ".next", "-l", "3000"]
+CMD ["pnpm", "start"] package.json pnpm-lock.yaml ./
