@@ -13,7 +13,7 @@ pipeline {
         }
         stage('build-docker') {
             steps {
-                sh 'docker build -t dreamacademy .'
+                sh 'pwd'
             }
         }
     }
