@@ -18,4 +18,4 @@ COPY --from=base /app/.next ./.next
 
 EXPOSE 3000
 
-CMD ["pnpm", "start"] package.json pnpm-lock.yaml ./
+CMD ["pnpm", "start"]
