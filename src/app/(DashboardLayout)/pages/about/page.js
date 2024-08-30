@@ -95,7 +95,7 @@ const About = () => {
     <>
       <div className="d-flex pt-4 justify-content-center align-items-center" style={{ height: '80vh' }}>
         <span className="text-center">
-          <h1 className="head1 fw-bolder">Tentang</h1>
+          <h1 className="head1 fw-bolder">xxxxxxx</h1>
           <Image src={logo} alt="" />
 
           <p className="text-black opacity-50 m-0 mt-5">Subheading for description or instructions</p>
