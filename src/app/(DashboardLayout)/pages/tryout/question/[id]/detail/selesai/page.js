@@ -8,6 +8,9 @@ import youtube from "../../../../../../../../../public/images/background/youtube
 import { useParams, useRouter } from "next/navigation";
 import { db } from "../../../../../../../../../public/firebaseConfig";
 import { getDocs, getDoc, collection, updateDoc, deleteDoc, doc, addDoc, setDoc } from "firebase/firestore";
+import DOMPurify from "dompurify";
+import { element } from "prop-types";
+import ProtectedRoute from "../../../../ProtectedRoute";
 
 async function fetchDataFromFirestore() {
     const querySnapshot = await getDocs(collection(db, 'userAnswer'));
@@ -37,7 +40,17 @@ export default function Selesai() {
         fetchData();
     }, []);
 
+    let emelents = [];
+    let indexQuestio = [];
+    emelents = element.answers
+    dataUserAnswer?.answers?.listQuestions.map(element => {
+
+    });
     console.log('hee', dataUserAnswer);
+
+    // emelents.forEach(items => {
+    //     indexQuestio = items.listQuestions;
+    // })
 
 
     const handleDetail = (index) => {
@@ -59,7 +72,8 @@ export default function Selesai() {
     const { id } = useParams(); // Ambil parameter dinamis dari URL
     const [detailData, setDetailData] = useState(null);
     const [allQuestions, setAllQuestions] = useState([]);
-    // console.log('detail', detailData);
+    console.log('detail', detailData);
+    console.log('detail', dataUserAnswer);
 
     useEffect(() => {
         if (id) {
@@ -116,15 +130,6 @@ export default function Selesai() {
         return <div>Loading...</div>;
     }
 
-
-    let dataAnswer = [];
-    let jawabanNorAnswer;
-
-    // let ambong;
-    // detailData.tps.forEach(item => {
-    //     ambong = item;
-    // });
-
     // Filter and flatten the listSubtest arrays for both TPS and Literasi tests
     const tpsName = detailData?.listTest
         ?.filter(item => item.nameTest === "TPS")
@@ -143,6 +148,8 @@ export default function Selesai() {
         }
     });
 
+    console.log('tps', tpsName);
+
     // Log the name property of each item in the literasiName array
     literasiName.forEach(subtest => {
         if (subtest && typeof subtest === 'object') {
@@ -152,60 +159,52 @@ export default function Selesai() {
         }
     });
 
-
-    // tpsName.forEach(element => {
-    //     console.log('detail', element);
-    // });
-
-
-
-
-    // detailData.listQuestions.forEach(data => {
-    //     console.log('item', data.yourAnswer);
-    // });
-
-    // console.log('dari luar:', ambong);
-
-
-    // let jawabanAda = { ada: 0, kosong: 0 };
     let benar = 0;
     let salah = 0;
+    let kosong = 0;
 
     allQuestions.forEach((data) => {
+        // Periksa apakah answerSelect tidak kosong
         if (data.answerSelect && data.answerSelect.length > 0) {
-            jawabanAda.ada += 1;
-        } else if (data.answerSelect && data.answerSelect.length <= 0) {
-            jawabanAda.kosong += 1;
-        }
+            // Periksa apakah answerSelect dan trueAnswer memiliki nilai yang sama
+            const isCorrect = data.answerSelect.every(
+                (answer, index) => answer === data.trueAnswer
+            );
 
-        if (data.answerSelect && data.answerSelect[0] === data.trueAnswer) {
-            benar += 1;
-        } else if ( data.answerSelect !== data.trueAnswer) {
-            salah += 1;
+            if (isCorrect) {
+                benar += 1;
+            } else {
+                salah += 1;
+            }
+        } else {
+            kosong += 1;
         }
-
+        console.log('do', data.answerSelect);
     });
 
-    const right = [benar, salah, jawabanAda.kosong];
+    console.log('Jumlah benar:', benar);
+    console.log('Jumlah salah:', salah);
+    console.log('Jumlah kosong:', kosong);
 
 
-    console.log('Jawaban salah:', salah);
-    const avarage = (benar / 10) * 100;
+    const right = [benar, salah, kosong];
+
+
+    const avarage = (benar / 10) * 1000;
 
 
 
     return (
-        <>
-            <div className="mt-5 pt-5 selesai">
-                <Row>
+        <ProtectedRoute>
+            <div className="mt-0 mt-lg-5 pt-5 selesai">
+                <Row className="mt-5 mt-lg-0">
                     <Col sm="12" lg="3">
                         <Link href="/pages/tryout#tryoutsaya">
                             <Button className="bg-primy w-100 rounded-5 border-0 mb-3">Kembali ke Dashboard TryOut</Button>
                         </Link>
                         <div className="bg-graylg p-2 rounded-3">
                             <section className="text-center d-flex flex-column align-items-center py-3">
-                                <h4 className="w-75 text-center">tryout</h4>
-                                <p>Sisa Waktu 0 : 19 : 47</p>
+                                <h4 className="w-75 text-center">{detailData.toName}</h4>
                             </section>
                             <section className="selesNilai">
                                 <div>
@@ -215,8 +214,10 @@ export default function Selesai() {
                                 <div className="bg-transparent p-0">
                                     <div className="flex-row bg-transparent m-0 gap-2 p-0">
                                         {right.map((item, index) => (
-                                            <div key={item}>
-                                                <h1 className={`fw-bolder ${index == 1 ? 'text-danger' : index == 2 ? 'text-black' : 'color-primer'}`}>{item}</h1>
+                                            <div key={index}>
+                                                <h1 className={`fw-bolder ${index === 1 ? 'color-third' : index === 2 ? 'text-black' : 'color-primer'}`}>
+                                                    {item}
+                                                </h1>
                                                 <b>{ket[index]}</b>
                                             </div>
                                         ))}
@@ -284,7 +285,7 @@ export default function Selesai() {
                                                 <div key={item} className="bg-white rounded-3 d-flex justify-content-between p-2 mb-2 w-100">
                                                     <p className="w-50 m-0">{item.name}</p>
                                                     <span className="d-flex justify-content-end align-items-center w-50 pe-2">
-                                                        <div className="px-3 bg-danger me-2 rounded-5 text-white fw-bold">300</div>
+                                                        <div className={`px-3 me-2 rounded-5 text-white fw-bold ${avarage <= 900 && avarage >= 600 ? 'bg-hijau' : avarage <= 600 && avarage >= 300 ? 'bg-third' : 'bg-danger'}`}>{avarage}</div>
                                                         <svg className="cursor-pointer" width="13" height="7" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                             <rect x="1.59375" width="6.73825" height="1.29582" rx="0.647908" transform="rotate(45 1.59375 0)" fill="black" />
                                                             <rect x="10.207" y="0.916016" width="6.73825" height="1.29582" rx="0.647908" transform="rotate(135 10.207 0.916016)" fill="black" />
@@ -295,30 +296,80 @@ export default function Selesai() {
                                         </div>
                                         <div>
                                             <strong className="ms-3">Tes Literasi</strong>
-                                            {literasiName.map((item, index) => (
-                                                <div className="bg-white rounded-3 mb-2" key={index} >
-                                                    <div className="bg-white rounded-3 d-flex justify-content-between p-2 w-100" style={{ boxShadow: '0 4px 4px 0px rgba(0,0,0,0.3)' }}>
+                                            {tpsName.map((item, index) => (
+                                                <div className="bg-white rounded-3 mb-2" key={index}>
+                                                    <div
+                                                        className="bg-white rounded-3 d-flex justify-content-between p-2 w-100"
+                                                        style={{ boxShadow: '0 4px 4px 0px rgba(0,0,0,0.3)' }}
+                                                    >
                                                         <p className="w-50 m-0">{item.name}</p>
                                                         <span className="d-flex justify-content-end align-items-center w-50 pe-2">
                                                             <div className="px-3 bg-warning me-2 rounded-5 text-white fw-bold">300</div>
-                                                            {/* {icon && detailIndex == index ? ( */}
-                                                            <svg onClick={() => handleDetail(index)} className="cursor-pointer" width="11" height="6" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <rect x="9.29102" y="5.68164" width="6.73825" height="1.29582" rx="0.647908" transform="rotate(-135 9.29102 5.68164)" fill="black" />
-                                                                <rect x="0.677734" y="4.76562" width="6.73825" height="1.29582" rx="0.647908" transform="rotate(-45 0.677734 4.76562)" fill="black" />
-                                                            </svg>
-                                                            {/* ) : (
-                                                                <svg onClick={() => handelIcon(index)} className="cursor-pointer" width="13" height="7" viewBox="0 0 11 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                    <rect x="1.59375" width="6.73825" height="1.29582" rx="0.647908" transform="rotate(45 1.59375 0)" fill="black" />
-                                                                    <rect x="10.207" y="0.916016" width="6.73825" height="1.29582" rx="0.647908" transform="rotate(135 10.207 0.916016)" fill="black" />
+                                                            {icon && detailIndex === index ? (
+                                                                <svg
+                                                                    onClick={() => handleDetail(index)}
+                                                                    className="cursor-pointer"
+                                                                    width="11"
+                                                                    height="6"
+                                                                    viewBox="0 0 11 6"
+                                                                    fill="none"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                >
+                                                                    <rect
+                                                                        x="9.29102"
+                                                                        y="5.68164"
+                                                                        width="6.73825"
+                                                                        height="1.29582"
+                                                                        rx="0.647908"
+                                                                        transform="rotate(-135 9.29102 5.68164)"
+                                                                        fill="black"
+                                                                    />
+                                                                    <rect
+                                                                        x="0.677734"
+                                                                        y="4.76562"
+                                                                        width="6.73825"
+                                                                        height="1.29582"
+                                                                        rx="0.647908"
+                                                                        transform="rotate(-45 0.677734 4.76562)"
+                                                                        fill="black"
+                                                                    />
                                                                 </svg>
-                                                            )} */}
+                                                            ) : (
+                                                                <svg
+                                                                    onClick={() => handelIcon(index)}
+                                                                    className="cursor-pointer"
+                                                                    width="13"
+                                                                    height="7"
+                                                                    viewBox="0 0 11 6"
+                                                                    fill="none"
+                                                                    xmlns="http://www.w3.org/2000/svg"
+                                                                >
+                                                                    <rect
+                                                                        x="1.59375"
+                                                                        width="6.73825"
+                                                                        height="1.29582"
+                                                                        rx="0.647908"
+                                                                        transform="rotate(45 1.59375 0)"
+                                                                        fill="black"
+                                                                    />
+                                                                    <rect
+                                                                        x="10.207"
+                                                                        y="0.916016"
+                                                                        width="6.73825"
+                                                                        height="1.29582"
+                                                                        rx="0.647908"
+                                                                        transform="rotate(135 10.207 0.916016)"
+                                                                        fill="black"
+                                                                    />
+                                                                </svg>
+                                                            )}
                                                         </span>
                                                     </div>
-                                                    {detail && detailIndex == index && (
+                                                    {detail && detailIndex === index && (
                                                         <div className="grid-container pb-3">
-                                                            {ambong.listQuestions.map((item, index) => (
-                                                                <div key={index}>
-                                                                    {(item.answer !== item.answerSelect[0]) && (item.answerSelect.length <= 0) ? (
+                                                            {dataUserAnswer[0].answers[index]?.listQuestions.map((question, questionIndex) => (
+                                                                <div key={questionIndex}>
+                                                                    {(question.trueAnswer !== question.answerSelect[0])  ? (
                                                                         <svg className="position-relative" style={{ left: '67%', top: '14%' }} width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                             <path d="M16 8.45898C16 12.8773 12.4183 16.459 8 16.459C3.58172 16.459 0 12.8773 0 8.45898C0 4.04071 3.58172 0.458984 8 0.458984C12.4183 0.458984 16 4.04071 16 8.45898Z" fill="#B22727" />
                                                                             <path fill-rule="evenodd" clip-rule="evenodd" d="M8 14.859C11.5346 14.859 14.4 11.9936 14.4 8.45898C14.4 4.92436 11.5346 2.05898 8 2.05898C4.46538 2.05898 1.6 4.92436 1.6 8.45898C1.6 11.9936 4.46538 14.859 8 14.859ZM8 16.459C12.4183 16.459 16 12.8773 16 8.45898C16 4.04071 12.4183 0.458984 8 0.458984C3.58172 0.458984 0 4.04071 0 8.45898C0 12.8773 3.58172 16.459 8 16.459Z" fill="white" />
@@ -333,13 +384,11 @@ export default function Selesai() {
                                                                             <path d="M12.5097 5.0818C12.8957 5.45778 12.8957 6.06738 12.5097 6.44337L7.5053 11.3178C7.11929 11.6938 6.49344 11.6938 6.10742 11.3178C5.72141 10.9418 5.7214 10.3322 6.10742 9.95623L11.1118 5.0818C11.4978 4.70581 12.1237 4.70581 12.5097 5.0818Z" fill="white" />
                                                                         </svg>
                                                                     )}
-
                                                                     <div
-                                                                        key={index}
-                                                                        className={`grid-item ${selectedIndex === index ? 'selected' : ''}`}
-                                                                        onClick={() => handleItemClick(index)}
+                                                                        className={`grid-item ${selectedIndex === questionIndex ? 'selected' : ''}`}
+                                                                        onClick={() => handleItemClick(questionIndex)}
                                                                     >
-                                                                        {index + 1}
+                                                                        {questionIndex + 1}
                                                                     </div>
                                                                     <svg width="40" height="12" viewBox="0 0 40 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                         <path d="M5.94595 0L7.28089 4.10855H11.6009L8.10594 6.64777L9.44089 10.7563L5.94595 8.2171L2.45101 10.7563L3.78595 6.64777L0.291015 4.10855H4.611L5.94595 0Z" fill="#F9A419" />
@@ -359,22 +408,19 @@ export default function Selesai() {
                         </div>
                     </Col >
                     <Col sm="12" lg="9">
-                        <h1> soal :
-                        </h1>
+                        <h1> soal : </h1>
                         {allQuestions.map((items, index) => (
                             <span key={items}>
                                 <div className="d-flex">
                                     <span>
-                                        <div className="px-3 py-2  bg-graylg rounded-3">
+                                        <div className="px-3 py-2 bg-graylg rounded-3">
                                             {index + 1}
                                         </div>
                                     </span>
-                                    <span className="ps-3">
+                                    <span className="ps-3 w-100">
                                         <section>
                                             <div className={`p-3 bg-graylg rounded-3`}>
-                                                <p className="m-0">
-                                                    {items.question}
-                                                </p>
+                                                <div className="m-0" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(items.question) }} />
                                             </div>
                                         </section>
                                         <section className="my-3">
@@ -395,8 +441,8 @@ export default function Selesai() {
                                                                 </FormGroup>
                                                                 <div
                                                                     check
-                                                                    className={`bg-graylg w-50 rounded-3 ms-2 w-100 p-2 ${items.trueAnswer.includes(tdata) && items.answerSelect?.includes(tdata) ? 'bg-hijau text-white' : !items.trueAnswer.includes(tdata) && items.yourAnswer?.includes(tdata) || items.trueAnswer.includes(tdata) ? 'bg-danger text-white' : ''}`}
-                                                                    style={{ minHeight: '30px' }}
+                                                                    className={`bg-graylg w-50 rounded-3 ms-2 w-100 p-2 ${items.trueAnswer.includes(tdata) && items.answerSelect?.includes(tdata) ? 'bg-hijau text-white' : !items.trueAnswer.includes(tdata) && items.yourAnswer?.includes(tdata) || items.trueAnswer.includes(tdata) ? 'bg-third text-white' : ''}`}
+                                                                    style={{ minHeight: '30px'}}
                                                                 >
                                                                     {tdata}
                                                                 </div>
@@ -415,7 +461,7 @@ export default function Selesai() {
                                                                         <Input name="radio1" type="radio"
                                                                             checked={tdata == items.answerSelect} readOnly />{' '}
                                                                         <div check
-                                                                            className={`bg-graylg w-50 rounded-3 ms-2 w-100 p-2 ${items.answerSelect[0] === items.trueAnswer && tdata === items.trueAnswer ? 'bg-hijau text-white' : items.answerSelect[0] !== items.trueAnswer && tdata === items.answerSelect[0] ? 'bg-danger text-white' : ''}`} style={{ minHeight: '30px' }}
+                                                                            className={`bg-graylg w-50 rounded-3 ms-2 w-100 p-2 ${items.answerSelect[0] === items.trueAnswer && tdata === items.trueAnswer ? 'bg-hijau text-white' : items.answerSelect[0] !== items.trueAnswer && tdata === items.answerSelect[0] ? 'bg-third text-white' : ''}`} style={{ minHeight: '30px' }}
                                                                         >
                                                                             {tdata}
                                                                         </div>
@@ -460,7 +506,7 @@ export default function Selesai() {
                                                         <Input
                                                             name="text"
                                                             type="textarea"
-                                                            className={`w-100 ${items.answerSelect[0]?.toLowerCase() === items.trueAnswer.toLowerCase() ? 'bg-hijau text-white' : items.answerSelect[0]?.toLowerCase() !== items.trueAnswer.toLowerCase() && items.answerSelect.length !== 0 ? 'bg-danger' : ''}`}
+                                                            className={`w-100 ${items.answerSelect[0]?.toLowerCase() === items.trueAnswer.toLowerCase() ? 'bg-hijau text-white' : items.answerSelect[0]?.toLowerCase() !== items.trueAnswer.toLowerCase() && items.answerSelect.length !== 0 ? 'bg-third text-white' : ''}`}
                                                             value={items.answerSelect}
                                                             readOnly
                                                         />{' '}
@@ -474,7 +520,7 @@ export default function Selesai() {
                                                     <strong>Pemabahasan</strong>
                                                     <div className="bg-graylg rounded-3 p-3">
                                                         <p className="m-0">{items.answer}</p>
-                                                        <Image src={youtube} alt="" />
+                                                        <Image src={youtube} alt="" style={{objectFit: window.innerWidth < 576 && 'contain'}} className={`${window.innerWidth < 576 && 'w-100 h-100'}`} />
                                                     </div>
                                                 </span>
                                             )}
@@ -483,7 +529,7 @@ export default function Selesai() {
                                                     <strong>Pemabahasan</strong>
                                                     <div className="bg-graylg rounded-3 p-3">
                                                         <p className="m-0">{items.answer}</p>
-                                                        <Image src={youtube} alt="" />
+                                                        <Image src={youtube} alt="" style={{objectFit: window.innerWidth < 576 && 'contain'}} className={`${window.innerWidth < 576 && 'w-100 h-100'}`} />
                                                     </div>
                                                 </span>
                                             )}
@@ -492,7 +538,7 @@ export default function Selesai() {
                                                     <strong>Pemabahasan</strong>
                                                     <div className="bg-graylg rounded-3 p-3">
                                                         <p className="m-0">{items.answer}</p>
-                                                        <Image src={youtube} alt="" />
+                                                        <Image src={youtube} alt="" style={{objectFit: window.innerWidth < 576 && 'contain'}} className={`${window.innerWidth < 576 && 'w-100 h-100'}`} />
                                                     </div>
                                                 </span>
                                             )}
@@ -505,6 +551,6 @@ export default function Selesai() {
                     </Col>
                 </Row >
             </div >
-        </>
+        </ProtectedRoute>
     )
 }

@@ -1,43 +1,61 @@
-'use client'
+'use client';
 
-import { Button, Card, Form, FormGroup, Input, Label } from "reactstrap"
-import bgLogin1 from "../../../../../public/images/background/bg1Login.svg";
-import bgLogin2 from "../../../../../public/images/background/bg2Login.svg";
-import bgLogin3 from "../../../../../public/images/background/loginbg3.svg";
-import Image from "next/image";
-import { auth, provider } from "../../../../../public/firebaseConfig";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword } from "firebase/auth"; // Firebase imports
+import { Button, Card, Form, FormGroup, Input } from "reactstrap";
 import { useState } from "react";
 import Link from "next/link";
+import { auth, provider, db } from "../../../../../public/firebaseConfig"; // Firebase config
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"; // Firebase authentication methods
+import { doc, setDoc } from "firebase/firestore"; // Firestore
 import { useRouter } from "next/navigation";
 
-export default function Login() {
+export default function Register() {
+    const [username, setUsername] = useState('');
+    const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
 
-    // Handle login with email and password
-    const handleEmailLogin = async () => {
+    // Handle form sign-up (registering with email and password)
+    const handleSignUp = async () => {
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            // Create user in Firebase Authentication
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            alert('Login successful!');
-            router.push("/"); // Redirect after successful login
+
+            // Save user data to Firestore
+            await setDoc(doc(db, 'users', user.uid), {
+                username,
+                phone,
+                email,
+                password,  // Save the password only for demonstration; avoid storing plain-text passwords
+            });
+            alert('User registered successfully!');
+            router.push('/pages/login');
         } catch (error) {
-            console.error("Error during login: ", error.message);
-            alert("Error during login: " + error.message);
+            console.error("Error registering user: ", error);
+            alert("Error registering user: " + error.message);
         }
     };
 
+    // Google Sign-In
     const handleGoogleSignIn = async () => {
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
+
+            // Save user data to Firestore
+            await setDoc(doc(db, 'users', user.uid), {
+                username: user.displayName,
+                email: user.email,
+                phone: user.phoneNumber || '',
+                googleId: user.uid,
+            });
+
             alert('Signed in with Google!');
-            router.push("/");
+            router.push('/pages/login');
         } catch (error) {
-            console.error("Error during Google Sign-In: ", error.message);
+            console.error("Error during Google Sign-In: ", error);
         }
     };
 
@@ -45,15 +63,40 @@ export default function Login() {
         setShowPassword(!showPassword);
     };
 
+
     return (
         <>
             <div className="position-fixed login d-flex justify-content-center align-items-center bg-white pt-5 pb-3" style={{ height: '100vh', width: '100%', zIndex: '999999', left: 0, top: 0 }}>
                 <Card className="h-75 w-lg-90 p-3 d-flex flex-column justify-content-between text-center" style={{ width: '30%' }}>
-                    <section>
-                        <h5>Login</h5>
+                    <section className="d-flex align-items-center">
+                        <Link href="/pages/login">
+                            <svg className="me-2 cursor-pointer" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="14" cy="14" r="14" fill="#27B262" />
+                                <path d="M15.3111 8.31405C15.2128 8.2145 15.0961 8.13552 14.9675 8.08163C14.839 8.02774 14.7012 8 14.5621 8C14.423 8 14.2852 8.02774 14.1567 8.08163C14.0281 8.13552 13.9114 8.2145 13.8131 8.31405L8.93667 13.2431C8.83818 13.3425 8.76004 13.4605 8.70673 13.5904C8.65342 13.7203 8.62598 13.8596 8.62598 14.0002C8.62598 14.1409 8.65342 14.2801 8.70673 14.41C8.76004 14.54 8.83818 14.658 8.93667 14.7573L13.8131 19.6864C13.9115 19.7858 14.0282 19.8647 14.1568 19.9185C14.2853 19.9723 14.423 20 14.5621 20C14.7012 20 14.8389 19.9723 14.9675 19.9185C15.096 19.8647 15.2127 19.7858 15.3111 19.6864C15.4095 19.587 15.4875 19.469 15.5407 19.3391C15.5939 19.2092 15.6213 19.0699 15.6213 18.9293C15.6213 18.7887 15.5939 18.6495 15.5407 18.5196C15.4875 18.3897 15.4095 18.2717 15.3111 18.1722L11.189 13.9949L15.3111 9.82822C15.7148 9.4094 15.7148 8.72212 15.3111 8.31405Z" fill="white" />
+                            </svg>
+                        </Link>
+                        <h5 className="mb-0 mx-auto">Create an Account</h5>
                     </section>
                     <section>
                         <Form>
+                            <FormGroup>
+                                <Input
+                                    id="exampleUsername"
+                                    name="username"
+                                    placeholder="Username"
+                                    type="text"
+                                    onChange={(e) => setUsername(e.target.value)}
+                                />
+                            </FormGroup>
+                            <FormGroup>
+                                <Input
+                                    id="examplePhone"
+                                    name="phone"
+                                    placeholder="Phone number"
+                                    type="number"
+                                    onChange={(e) => setPhone(e.target.value)}
+                                />
+                            </FormGroup>
                             <FormGroup>
                                 <Input
                                     id="exampleEmail"
@@ -67,10 +110,11 @@ export default function Login() {
                                 <Input
                                     id="examplePassword"
                                     name="password"
-                                    placeholder="Password"
-                                    type="password"
-                                    onChange={(e) => setPassword(e.target.value)}
                                     className="border-0"
+                                    placeholder="Password"
+                                    type={showPassword ? "text" : "password"} // Switch between text and password
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    style={{outline: 'none', outlineColor: 'white'}}
                                 />
                                 <Button
                                     type="button"
@@ -88,16 +132,9 @@ export default function Login() {
                                     }
                                 </Button>
                             </FormGroup>
-                            <Button className="w-100 rounded-3 bg-primer border-0" onClick={handleEmailLogin}>
-                                Sign in with email
-                            </Button>
-                            <span className="d-flex align-items-center my-3 fw-light text-secondary">
-                                <hr className="border-black w-50" />
-                                <p className="w-100 m-0">or continue with</p>
-                                <hr className="border-black w-50" />
-                            </span>
-                            <Button onClick={handleGoogleSignIn} className="w-100 rounded-3 bg-graylg border-0 text-black d-flex align-items-center btnHover">
-                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <Button className="w-100 rounded-3 bg-primer border-0" onClick={handleSignUp}>Sign up</Button>
+                            <Button className="w-100 rounded-3 bg-primer border-0 mt-3" onClick={handleGoogleSignIn}>
+                                <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <g clipPath="url(#clip0_115_940)">
                                         <path d="M19.9895 10.1871C19.9895 9.36767 19.9214 8.76973 19.7742 8.14966H10.1992V11.848H15.8195C15.7062 12.7671 15.0943 14.1512 13.7346 15.0813L13.7155 15.2051L16.7429 17.4969L16.9527 17.5174C18.8789 15.7789 19.9895 13.221 19.9895 10.1871Z" fill="#4285F4" />
                                         <path d="M10.1993 19.9314C12.9527 19.9314 15.2643 19.0456 16.9527 17.5175L13.7346 15.0814C12.8734 15.6683 11.7176 16.078 10.1993 16.078C7.50242 16.078 5.21352 14.3396 4.39759 11.9368L4.27799 11.9467L1.13003 14.3274L1.08887 14.4392C2.76588 17.6946 6.2106 19.9314 10.1993 19.9314Z" fill="#34A853" />
@@ -110,14 +147,12 @@ export default function Login() {
                                         </clipPath>
                                     </defs>
                                 </svg>
-                                <p className="m-0 text-center w-100">Google</p>
+                                Sign With Google
                             </Button>
                         </Form>
                     </section>
                     <section>
-                        <Link href={'/pages/register'}>
-                            <Button className="w-100 rounded-3 bg-graylg border-0 text-black btnHover">Register</Button>
-                        </Link>
+                        <p className="text-secondary-emphasis fw-light">By clicking continue, you agree to our <b>Term of Service</b> and <b>Privacy Policy</b></p>
                     </section>
                 </Card>
             </div>

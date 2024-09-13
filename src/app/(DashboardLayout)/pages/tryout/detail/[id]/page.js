@@ -14,8 +14,23 @@ import logo from "../../../../../../../public/images/logos/aboutLogo.svg"
 import usertry from "../../../../../../../public/images/users/usertry.svg"
 import Link from "next/link";
 import { db } from "../../../../../../../public/firebaseConfig";
+import { useAuth } from "../../../../../../../public/AuthContext";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import ProtectedRoute from "../../ProtectedRoute";
+
+async function fetchUserData(uid) {
+    const userDocRef = doc(db, 'users', uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+        return userDoc.data();
+    } else {
+        console.log('No such document!');
+        return null;
+    }
+}
+
 
 const formatDate = (dateString) => {
     const months = [
@@ -41,10 +56,8 @@ const formatDate = (dateString) => {
 const About = () => {
     const [show, setShow] = useState(true);
     const router = useRouter();
-
-    const handleShow = () => {
-        setShow(!show);
-    }
+    const { currentUser } = useAuth(); // Get the logged-in user from your AuthContext
+    const [dataUser, setDataUser] = useState([]);
 
     const TPS = ["Kemampuan Penalaran Umum", "Pengetahuan dan Pemahaman Umum", "Kemampuan Memahami Bacaan dan Menulis", "Pengetahuan Kuantitatif"];
     const regDetail = ["Akses semua modul", "Hasil nilai, beanar & salah", "Pembahasan Soal", "Rasionalisasi PTN"];
@@ -55,7 +68,7 @@ const About = () => {
     useEffect(() => {
         if (id) {
             const fetchDetailData = async () => {
-                const docRef = doc(db, 'tryout', id);
+                const docRef = doc(db, 'tryout_v1', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setDetailData(docSnap.data());
@@ -67,6 +80,37 @@ const About = () => {
         }
     }, [id]);
 
+    useEffect(() => {
+        if (currentUser?.uid) {
+            async function fetchData() {
+                const userData = await fetchUserData(currentUser.uid);
+                if (userData) {
+                    setDataUser(userData);
+                }
+            }
+            fetchData();
+        }
+    }, [currentUser]);
+
+    if (!dataUser) {
+        return <div>Loading...</div>;
+    }
+
+    const handleShow = () => {
+        setShow(!show);
+    }
+
+    const handleUbah = () => {
+        router.push('/pages/profile');
+    }
+
+    const tps = detailData?.listTest?.filter(item => item.nameTest === "TPS") ?? [];
+    let tpsListSubtests = tps.flatMap(element => element.listSubtest);
+
+    //literasi
+    const literiasi = detailData?.listTest?.filter(item => item.nameTest === "Tes Literasi") ?? [];
+    let listSubtests = literiasi.flatMap(element => element.listSubtest);
+
     if (!detailData) {
         return <div>Loading...</div>;
     }
@@ -76,8 +120,8 @@ const About = () => {
     console.log('detail', detailData);
 
     return (
-        <>
-            <div className="" style={{ padding: '12vh 10% 20px' }}>
+        <ProtectedRoute>
+            <div className="detailAll" style={{ padding: '12vh 10% 20px' }}>
                 <section className="d-flex align-items-center mb-4">
                     <Link href="/pages/tryout">
                         <svg className="me-2 cursor-pointer" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -87,7 +131,7 @@ const About = () => {
                     </Link>
                     Try Out Dream Academy
                 </section>
-                <div className="ps-5">
+                <div className="ps-0 ps-lg-5">
                     <section style={{ height: '30vh' }}>
                         <Row className="h-100">
                             <Col sm="12" lg="3">
@@ -95,9 +139,9 @@ const About = () => {
                                     Try Out
                                 </div>
                             </Col>
-                            <Col sm="12" lg="9">
-                                <span>
-                                    <h5>{detailData.name}</h5>
+                            <Col sm="12" lg="9" className="mt-3 mt-lg-0">
+                                <span className="text-center text-lg-start">
+                                    <h5>{detailData.toName}</h5>
                                     <p className="m-0">{formatDate(detailData.created)} s.d. {formatDate(detailData.ended)}</p>
                                     <p className="mt-4">{detailData.desk}</p>
                                 </span>
@@ -105,7 +149,7 @@ const About = () => {
                         </Row>
                     </section>
                     <section className="w-100">
-                        <div className="p-4 text-black rounded-4 mt-5" style={{ width: '40%', backgroundColor: 'rgb(000, 000, 000, 0.05)' }}>
+                        <div className="p-4 text-black rounded-4 mt-0 mt-lg-5" style={{ width: window.innerWidth < 576 ? '100%' : '40%', backgroundColor: 'rgb(000, 000, 000, 0.05)' }}>
                             <div className="d-flex tryoutSec2 justify-content-between align-items-center">
                                 <span>
                                     <div className="rounded-circle">
@@ -159,7 +203,7 @@ const About = () => {
                             <span className="w-100">
                                 <h5> TPS</h5>
                                 <span>
-                                    {detailData.tps.map((item, index) => (
+                                    {tpsListSubtests.map((item, index) => (
                                         <div key={index}>
                                             <p>{item.name}</p>
                                             <b>{item.timeMinute} Menit | {item.numberQuestions} Soal</b>
@@ -177,7 +221,7 @@ const About = () => {
                             <span className="w-100">
                                 <h5>Tes Literasi</h5>
                                 <span>
-                                    {detailData.literacy.map((item, index) => (
+                                    {listSubtests.map((item, index) => (
                                         <div key={index}>
                                             <p>{item.name}</p>
                                             <b>{item.timeMinute} Menit | {item.numberQuestions} Soal</b>
@@ -190,33 +234,108 @@ const About = () => {
                     <section className="tryoutSec4">
                         <Row className="h-100">
                             <Col sm="12" lg="3">
-                                <Image src={usertry} alt="" />
+                                <Image src={usertry} style={{ width: '100%' }} alt="" />
                             </Col>
                             <Col sm="12" lg="9">
-                                <div className="d-flex ps-2 flex-column justify-content-between h-100 w-100">
-                                    <span>
-                                        <b>Target Universitas</b>
-                                        <h5 className="text-black fw-light">Universitas Hasanuddin</h5>
-                                    </span>
-                                    <span>
-                                        <h5 className="d-flex align-items-center">
-                                            <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
-                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
-                                                <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
-                                                <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
-                                            </svg>
-                                            Teknik Informatika</h5>
-                                        <h5 className="d-flex align-items-center">
-                                            <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
-                                                <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
-                                                <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
-                                                <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
-                                            </svg>
-
-                                            Sistem Informasi</h5>
-                                        <div>
+                                <div className="d-flex ps-2 text-center text-lg-start flex-column justify-content-between h-100 w-100">
+                                    <Row>
+                                        <Col xs='6' sm='12' lg='3' className="p-0 m-0">
+                                            <span>
+                                                <b>Target Universitas 1</b>
+                                                <h5 className="text-black fw-light">{dataUser.universitas}</h5>
+                                            </span>
+                                            <span className="jurusan">
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan1}</h5>
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan2}</h5>
+                                            </span>
+                                        </Col>
+                                        <Col xs='6' sm='12' lg='3' className="p-0 m-0">
+                                            <span>
+                                                <b>Target Universitas 2</b>
+                                                <h5 className="text-black fw-light">{dataUser.universitas3}</h5>
+                                            </span>
+                                            <span className="jurusan">
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan1_3}</h5>
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan2_3}</h5>
+                                            </span>
+                                        </Col>
+                                        <Col xs='6' sm='12' lg='3' className="p-0 m-0">
+                                            <span>
+                                                <b>Target Universitas 3</b>
+                                                <h5 className="text-black fw-light">{dataUser.universitas2}</h5>
+                                            </span>
+                                            <span className="jurusan">
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan1_2}</h5>
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan2_2}</h5>
+                                            </span>
+                                        </Col>
+                                        <Col xs='6' sm='12' lg='3' className="p-0 m-0">
+                                            <span>
+                                                <b>Target Universitas 4</b>
+                                                <h5 className="text-black fw-light">{dataUser.universitas4}</h5>
+                                            </span>
+                                            <span className="jurusan">
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan1_4}</h5>
+                                                <h5 className="d-flex align-items-center">
+                                                    <svg className="me-2" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10Z" fill="#27B262" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18ZM10 20C15.5228 20 20 15.5228 20 10C20 4.47715 15.5228 0 10 0C4.47715 0 0 4.47715 0 10C0 15.5228 4.47715 20 10 20Z" fill="white" />
+                                                        <path d="M4.36189 9.25719C4.84441 8.7872 5.62672 8.7872 6.10924 9.25719L9.38261 12.4455C9.86513 12.9155 9.86513 13.6775 9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475L4.36189 10.9592C3.87937 10.4892 3.87937 9.72717 4.36189 9.25719Z" fill="white" />
+                                                        <path d="M15.6381 6.35249C16.1206 6.82247 16.1206 7.58447 15.6381 8.05446L9.38261 14.1475C8.90009 14.6175 8.11777 14.6175 7.63526 14.1475C7.15274 13.6775 7.15273 12.9155 7.63525 12.4455L13.8908 6.35249C14.3733 5.8825 15.1556 5.8825 15.6381 6.35249Z" fill="white" />
+                                                    </svg>
+                                                    {dataUser.jurusan2_4}</h5>
+                                            </span>
+                                        </Col>
+                                        <div className="bg-blur w-lg-100 text-start">
                                             <svg className="me-2" width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <rect x="0.133789" y="22.8667" width="22.7333" height="22.7333" rx="11.3667" transform="rotate(-90 0.133789 22.8667)" fill="#27B262" />
                                                 <rect x="12.7637" y="10.2368" width="8.84074" height="2.52593" rx="1.26296" transform="rotate(90 12.7637 10.2368)" fill="white" />
@@ -224,10 +343,10 @@ const About = () => {
                                             </svg>
                                             Jurusan yang kamu pilih akan mempengaruhi progressmu loh
                                         </div>
-                                    </span>
+                                    </Row>
                                     <span className="text-center">
                                         <p>Ingin mengubah target yang kamu atur sebelumnya?</p>
-                                        <Button className="border-primer bg-transparent w-100">Ubah Sekarang</Button>
+                                        <Button className="border-primer bg-transparent w-100" onClick={handleUbah}>Ubah Sekarang</Button>
                                     </span>
                                 </div>
                             </Col>
@@ -243,7 +362,7 @@ const About = () => {
             </div>
             {!show && (
                 <div id="detail" className="regTrigger">
-                    <Card className="px-4 pt-3 pb-2 h-100 w-50 bg-light m-0">
+                    <Card className="px-4 pt-1 pt-lg-3 pb-2 h-100 w-50 w-lg-90 bg-light m-0">
                         <section className="d-flex mb-2 justify-content-end">
                             <svg onClick={handleShow} className="cursor-pointer" width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect x="23.4775" y="7.06396" width="2.52178" height="22.4051" rx="1.26089" transform="rotate(45 23.4775 7.06396)" fill="black" />
@@ -252,7 +371,7 @@ const About = () => {
                         </section>
                         <section className="tables">
                             <Row>
-                                <Col sm="4" lg="4" className="px-1">
+                                <Col xs='4' sm="4" lg="4" className="px-1">
                                     <div className="rounded pt-2 bg-transparent">
                                         <span className="invisible">
                                             <b>Daftar</b>
@@ -271,7 +390,7 @@ const About = () => {
                                         </div>
                                     </div>
                                 </Col>
-                                <Col sm="4" lg="4" className="px-1">
+                                <Col xs='4' sm="4" lg="4" className="px-1">
                                     <div className="rounded pt-2" style={{ backgroundColor: 'rgb(39, 178, 98, 0.2)' }}>
                                         <span className="text-center">
                                             <h5>Premium</h5>
@@ -300,7 +419,7 @@ const About = () => {
                                         </div>
                                     </div>
                                 </Col>
-                                <Col sm="4" lg="4" className="px-1">
+                                <Col xs='4' sm="4" lg="4" className="px-1">
                                     <div className="rounded pt-2 w-100" style={{ backgroundColor: 'rgb(249, 164, 25, 0.2)' }}>
                                         <span className="text-center">
                                             <h5>Gratis</h5>
@@ -331,18 +450,18 @@ const About = () => {
                                 </Col>
                             </Row>
                         </section>
-                        <section className="bg-white mt-3 p-3 text-center rounded-3">
+                        <section className="bg-white mt-3 p-1 p-lg-3 text-center rounded-3">
                             <b>TO GRATIS</b>
-                            <p className="fw-light">(Syarat dan ketentuan berlaku)</p>
+                            <p className="fw-light mb-2 mb-lg-4">(Syarat dan ketentuan berlaku)</p>
                             <Link href={`/pages/tryout/detail/${id}/pembayaran?type=toGratis`}>
-                                <Button className="rounded-5 w-50">Daftar</Button>
+                                <Button className="rounded-5 w-50 w-lg-100">Daftar</Button>
                             </Link>
                         </section>
-                        <p className="fw-light my-3 text-center">TO Premium</p>
+                        <p className="fw-light my-2 my-lg-3 text-center">TO Premium</p>
                         <section>
                             <Row>
-                                <Col sm="12" lg="6">
-                                    <div className="text-center p-3 bg-white rounded-3">
+                                <Col sm="12" lg="6" className="mb-3 mb-lg-0">
+                                    <div className="text-center p-2 p-lg-3 bg-white rounded-3">
                                         <b>Pakai DA Coin</b>
                                         <span className="d-flex justify-content-center align-items-center">
                                             <div className="bg-warning me-2 text-white rounded-circle d-flex justify-content-center align-items-center" style={{ width: '22px', height: '22px' }}>
@@ -370,7 +489,7 @@ const About = () => {
                     </Card>
                 </div>
             )}
-        </>
+        </ProtectedRoute>
     );
 };
 

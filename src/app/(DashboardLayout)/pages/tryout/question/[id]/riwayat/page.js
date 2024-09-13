@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation"
 import { Button } from "reactstrap"
+import ProtectedRoute from "../../../ProtectedRoute";
 
 export default function Riwayat() {
     const router = useRouter();
     return (
-        <>
+        <ProtectedRoute>
             <div style={{ padding: '13vh 7% 20px' }}>
                 <section className="d-flex align-items-center gap-2 mb-3">
                     <svg className="cursor-pointer" onClick={() => router.back()} width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -41,6 +42,6 @@ export default function Riwayat() {
                     ))}
                 </section>
             </div>
-        </>
+        </ProtectedRoute>
     )
 }

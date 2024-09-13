@@ -134,11 +134,11 @@ const HomeLand = () => {
                     <Image src={contoh} alt="" className="w-75 h-100" data-aos="zoom-in-down" />
                 </div>
             </div>
-            <div className="bg-green w-100 px-5 card1 position-relative">
+            <div className="bg-green w-100 h-100 px-5 card1 position-relative">
                 <Row>
-                    <Col sm="12" lg="6" style={{ height: '50vh' }}>
-                        <Row style={{ zIndex: 0 }}>
-                            <Col sm="12" lg="6" className="position-relative" style={{ top: '10px', zIndex: '1' }}>
+                    <Col sm="12" lg="6" style={{ height: '50vh', padding: '0' }}>
+                        <Row style={{ zIndex: 0, height: '100%', width: '100%' }}>
+                            <Col sm="12" lg="6" className="position-relative" style={{ top: '10px', zIndex: '1', overflowX: 'hidden' }}>
                                 <div className="scrolling-cards up">
                                     {tableData.map((item, index) => (
                                         <Card key={index} className="mb-1" style={{ height: '170px' }}>
@@ -162,7 +162,7 @@ const HomeLand = () => {
                                     ))}
                                 </div>
                             </Col>
-                            <Col sm="12" lg="6" className="position-relative" style={{ bottom: '50px', zIndex: '1' }}>
+                            <Col sm="12" lg="6" className="position-relative responsive-bottom" style={{ zIndex: '1', overflowX: 'hidden' }}>
                                 <div className="scrolling-cards down">
                                     {tableData.map((item, index) => (
                                         <Card key={index} className="mb-1" style={{ height: '170px' }}>
@@ -201,16 +201,16 @@ const HomeLand = () => {
                 </Row>
             </div>
             <div className="lpSecond">
-                <div className="w-100 d-flex justify-content-center align-items-center pt-5" style={{ height: '90vh', zIndex: '99', position: 'relative', backgroundColor: 'rgba(250, 251, 250, 0.4)' }}>
-                    <Card className="m-0 w-75 rounded-2 p-3 bg-white mt-5" data-aos="zoom-in-down">
+                <div className="w-100 d-flex justify-content-center align-items-center pt-5" style={{ height: '90%', zIndex: '99', position: 'relative', backgroundColor: 'rgba(250, 251, 250, 0.4)' }}>
+                    <Card className="m-0 w-75 rounded-2 p-3 bg-white mt-5" data-aos="zoom-in-down" style={{ zIndex: '999' }}>
                         <div className="text-center">
                             <h5 className="text-muted">SIAP MELEWATI RINTANGAN SNBT</h5>
                             <h3>Persiapkan semua untuk Ujianmu</h3>
                             <p className="text-muted">Fitur Try Out</p>
                         </div>
-                        <div className="fiturs px-5">
+                        <div className="row fiturs px-5 w-100">
                             {titleFitur.map((item, index) => (
-                                <section className="fitur-item" key={index}>
+                                <section className="fitur-item col-lg-6" key={index}>
                                     <div>
                                         <Image src={ikons[index]} alt="" />
                                     </div>

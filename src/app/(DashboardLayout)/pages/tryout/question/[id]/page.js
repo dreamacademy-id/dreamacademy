@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation'; // Updated import
+import ProtectedRoute from "../../ProtectedRoute";
 
 const formatDate = (dateString) => {
     const months = [
@@ -80,8 +81,8 @@ export default function Soal() {
 
     let idsoal;
     return (
-        <>
-            <div style={{ padding: '13vh 7% 20px' }}>
+        <ProtectedRoute>
+            <div className="detTrySaya" style={{ padding: '13vh 7% 20px' }}>
                 <section className="d-flex align-items-center gap-2 mb-3">
                     <Link href="">
                         <svg className="cursor-pointer" onClick={() => router.back()} width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,7 +98,6 @@ export default function Soal() {
                             <Col sm="3" lg="3">
                                 <div className="bg-primy h-100 rounded-3">TryOut</div>
                             </Col>
-
                             <Col sm="9" lg="9">
                                 <span>
                                     <h5>{detailData.toName}</h5>
@@ -108,9 +108,9 @@ export default function Soal() {
                                         {detailData.desk}
                                     </p>
                                 </span>
-                                <span>
+                                <span className='d-flex flex-column flex-lg-row align-items-center'>
                                     <Link href={`/pages/tryout/question/${id}/detail`}>
-                                        <Button className="bg-primy rounded-5 px-4 border-0 me-4">Mulai Mengerjakan ≫</Button>
+                                        <Button className="bg-primy rounded-5 px-4 border-0 me-lg-4">Mulai Mengerjakan ≫</Button>
                                     </Link>
                                     <Link href={`/pages/tryout/question/${id}/riwayat`} className="text-decoration-underline">
                                         Riwayat Pengerjaan
@@ -122,7 +122,7 @@ export default function Soal() {
                 </section>
                 <section>
                     <Row>
-                        <Col sm="12" lg="4">
+                        <Col sm="12" lg="4" className='mb-4'>
                             <div className="bg-graylg p-4 rounded-3">
                                 <div className="d-flex justify-content-between align-items-center">
                                     <span>
@@ -202,6 +202,6 @@ export default function Soal() {
                     </Row>
                 </section>
             </div>
-        </>
+        </ProtectedRoute>
     )
 }

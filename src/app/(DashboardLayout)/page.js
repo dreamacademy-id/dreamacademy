@@ -21,16 +21,16 @@ import { useEffect } from "react";
 export default function Home() {
   useEffect(() => {
     AOS.init({
-         duration: 800,
-         once: false,
-       })
- }, [])
+      duration: 800,
+      once: false,
+    })
+  }, [])
 
   return (
     <>
-      <Header />
-      <HomePage />
-      <BottomNav />
+        <Header />
+        <HomePage />
+        <BottomNav />
     </>
   );
 }

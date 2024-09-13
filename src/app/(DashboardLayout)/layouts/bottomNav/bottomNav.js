@@ -7,7 +7,7 @@ export default function BottomNav() {
         <div className="bg-white" style={{ minHeight: '25vh' }}>
             <hr className="m-0" />
             <div className="p-3 ps-5">
-                <Row className="w-100 h-100 px-0">
+                <Row className="w-100 px-0">
                     <Col sm='12' lg="6">
                         <div className="d-flex justify-content-between flex-column w-100 h-100">
                             <Image src={LogoWhite} alt="logo" />

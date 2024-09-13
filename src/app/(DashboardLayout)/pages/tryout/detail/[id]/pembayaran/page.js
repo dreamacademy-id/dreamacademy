@@ -6,6 +6,7 @@ import { db } from "../../../../../../../../public/firebaseConfig";
 import { useParams } from "next/navigation";
 import { doc, getDoc } from 'firebase/firestore';
 import { Image } from "react-feather";
+import ProtectedRoute from "../../../ProtectedRoute";
 
 const Pembayaran2 = () => {
     const eWallet = ["Go-Pay", "OVO", "Dana", "LinkAja"];
@@ -52,7 +53,7 @@ const Pembayaran2 = () => {
     useEffect(() => {
         if (id) {
             const fetchDetailData = async () => {
-                const docRef = doc(db, 'tryout', id);
+                const docRef = doc(db, 'tryout_v1', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setDetailData(docSnap.data());
@@ -70,9 +71,9 @@ const Pembayaran2 = () => {
 
 
     return (
-        <>
-            <div className="w-100 d-flex justify-content-center" style={{ height: '89vh', marginTop: '11vh', zIndex: '99' }}>
-                <div className="w-50 h-100 pb-5" >
+        <ProtectedRoute>
+            <div className="w-100 d-flex justify-content-center" style={{ height: '89vh', marginTop: window.innerWidth < 576 ? '0%' : '11vh', zIndex: '99' }}>
+                <div className="w-50 w-lg-100 h-100 pb-5" style={{paddingTop: window.innerWidth < 576 ? '13vh' : '0%'}} >
                     <section className="d-flex w-100">
                         <Link href={`/pages/tryout/detail/${id}`}>
                             <svg className="me-2" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -87,13 +88,13 @@ const Pembayaran2 = () => {
                             <section>
                                 <div className="bg-graylg pe-3 rounded">
                                     <Row>
-                                        <Col sm="3" lg="3">
+                                        <Col xs='4' sm="3" lg="3">
                                             <div className="border border-1 h-100 w-100 rounded border-black d-flex justify-content-center align-items-center">
                                                 Try Out
                                             </div>
                                         </Col>
-                                        <Col sm="9" lg="9" className="d-flex py-2 ps-0 flex-column">
-                                            <span className="mb-5">{detailData.name}</span>
+                                        <Col xs='8' sm="9" lg="9" className="d-flex py-2 ps-0 flex-column">
+                                            <span className="mb-5">{detailData.toName}</span>
                                             <span className="text-end">
                                                 {type === 'coin' && (
                                                     <b>4 DA Coin</b>
@@ -145,12 +146,12 @@ const Pembayaran2 = () => {
                                     <span>
                                         <section>
                                             <div className="w-100 d-flex justify-content-end mt-3">
-                                                <div className="rounded-2 w-50 border border-1 border-black text-center py-2 cursor-pointer" onClick={handleMetode}>Metode Pembayaran ﹥</div>
+                                                <div className="rounded-2 w-50 w-lg-75 border border-1 border-black text-center py-2 cursor-pointer" onClick={handleMetode}>Metode Pembayaran ﹥</div>
                                             </div>
                                         </section>
                                         {metode && (
                                             <div className="position-fixed w-100 d-flex justify-content-center align-items-center" style={{ height: '100vh', zIndex: '99999', top: 0, left: 0, backgroundColor: 'rgb(000, 000, 000, 0.5)' }}>
-                                                <Card className="h-75 py-3 px-5 d-flex flex-column justify-content-between align-items-center" style={{ width: '40%' }}>
+                                                <Card className="h-75 py-3 px-2 px-lg-5 d-flex flex-column justify-content-between align-items-center w-lg-90" style={{ width: '40%' }}>
                                                     <span className="w-100">
                                                         <section className="text-end mb-3">
                                                             <svg className="cursor-pointer" onClick={handleMetode} width="33" height="32" viewBox="0 0 33 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -164,12 +165,12 @@ const Pembayaran2 = () => {
                                                                     className={`grid-item border border-1 rounded-3 p-2 mb-3 w-100 cursor-pointer ${selectedIndex === index ? 'border-primer border-3' : ''}`}
                                                                     onClick={() => handleItemClick(item ,index)}>
                                                                     <Row className="w-100">
-                                                                        <Col sm="3" lg="3" className="d-flex align-items-center">
+                                                                        <Col xs='4' sm="3" lg="3" className="d-flex align-items-center">
                                                                             <img src={image[index]} alt="" width={100} />
                                                                         </Col>
-                                                                        <Col sm="9" lg="9">
-                                                                            <h5>{item}</h5>
-                                                                            <p>Siapkan HP anda yang terpasang {item}</p>
+                                                                        <Col xs='8' sm="9" lg="9">
+                                                                            <h5 className="mb-1 mb-lg-4">{item}</h5>
+                                                                            <p className="mb-0 mb-lg-4">Siapkan HP anda yang terpasang {item}</p>
                                                                         </Col>
                                                                     </Row>
                                                                 </div>
@@ -235,7 +236,7 @@ const Pembayaran2 = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </ProtectedRoute>
     );
 };
 

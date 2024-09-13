@@ -59,7 +59,8 @@ const SalesChart = () => {
         <Chart
         className="d-flex justify-content-center"
           type="area"
-          width="60%"
+          // width="60%"
+          width={window.innerWidth < 576 ? "100%" : "60%"}
           height="290"
           options={chartoptions.options}
           series={chartoptions.series}

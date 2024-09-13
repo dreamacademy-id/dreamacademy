@@ -18,6 +18,7 @@ import SalesChart from "../../components/dashboard/SalesChart";
 import FullLayout from "../layout";
 import { db } from "../../../../../public/firebaseConfig";
 import { getDocs, collection } from 'firebase/firestore';
+import ProtectedRoute from "./ProtectedRoute";
 
 async function fetchDataFromFirestore() {
     const querySnapshot = await getDocs(collection(db, 'tryout_v1'));
@@ -45,35 +46,35 @@ const TryOutSaya = () => {
 
     console.log('ja', dataTryOut);
     return (
-        <>
-            <div className="mt-5">
-                <section className="section-green-bg  pb-2 pt-3  w-100" style={{ padding: '0 7% 20px' }}>
+        <ProtectedRoute>
+            <div className="mt-5 tryOutSaya">
+                <section className="section-green-bg pb-2 pt-3  w-100" style={{ padding: '0 7% 20px' }}>
                     <h5 className="fw-bolder">Grafik Nilai Try Out UTBK</h5>
                     <p className="text-white">Lihat progresmu disini</p>
                     <SalesChart />
                 </section>
-                <div className="position-relative" style={{ padding: '0 7% 20px' }}>
+                <div className="position-relative tryOutSaya" style={{ padding: '0 7% 20px' }}>
                     <section className="mt-5">
-                        <div className="d-flex align-items-center justify-content-between mb-2">
-                            <span>
+                        <Row className="d-flex align-items-center justify-content-between mb-2">
+                            <Col sm='12' lg='6'>
                                 <h5 className="m-0">Try Out Belum Selesai</h5>
                                 <p>Lihat somua TO kamu milikl korjakan TO nya sokarang!</p>
-                            </span>
-                            <span>
+                            </Col>
+                            <Col sm='12' lg='6' className='text-lg-end'>
                                 <Button className="rounded-5 border-primer bg-transparent color-primer fw-bolder border-2 px-4">Lihat Semua ≫</Button>
-                            </span>
-                        </div>
+                            </Col>
+                        </Row>
                         <Row>
                             <Col sm="12" lg="6" className="mb-3">
                                 <Card className="w-100 h-100 p-3 cursor-pointer">
                                     <Row className="h-100">
-                                        <Col sm="3" lg="3" className="p-0 ps-2">
+                                        <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
                                             <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
                                                 <h3 className="text-white fw-bolder">SNBT</h3>
                                                 <h1 className="fw-bolder m-0">4</h1>
                                             </div>
                                         </Col>
-                                        <Col sm="9" lg="9" className="h-100">
+                                        <Col xs='9' sm="9" lg="9" className="h-100">
                                             <div className="h-100 d-flex flex-column justify-content-between">
                                                 <span>
                                                     <h5>Try Out UTBK 2024 #4 - SNBT</h5>
@@ -92,13 +93,13 @@ const TryOutSaya = () => {
                                 <Col sm="12" lg="6" key={index} className="mb-3">
                                     <Card className="w-100 h-100 p-3 cursor-pointer">
                                         <Row className="h-100">
-                                            <Col sm="3" lg="3" className="p-0 ps-2">
+                                            <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
                                                 <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
                                                     <h3 className="text-white fw-bolder">SNBT</h3>
                                                     <h1 className="fw-bolder m-0">6</h1>
                                                 </div>
                                             </Col>
-                                            <Col sm="9" lg="9" className="h-100">
+                                            <Col xs='9' sm="9" lg="9" className="h-100">
                                                 <Link href={`/pages/tryout/question/${item.id}`}>
                                                     <div className="h-100 d-flex flex-column justify-content-between">
                                                         <span>
@@ -119,27 +120,27 @@ const TryOutSaya = () => {
                         </Row>
                     </section>
                     <section className="mt-5">
-                        <div className="d-flex align-items-center justify-content-between mb-2">
-                            <span>
+                        <Row className="d-flex align-items-center justify-content-between mb-2">
+                            <Col sm='12' lg='6'>
                                 <h5 className="m-0">Try Out Selesai</h5>
                                 <p>Lihat semua Try Out yang telah kamu ikuti</p>
-                            </span>
-                            <span>
+                            </Col>
+                            <Col sm='12' lg='6' className='text-lg-end'>
                                 <Button className="rounded-5 border-primer bg-transparent color-primer fw-bolder border-2 px-4">Lihat Semua ≫</Button>
-                            </span>
-                        </div>
+                            </Col>
+                        </Row>
                         <Row>
                             {[0, 1, 2, 3, 4, 5,6,7].slice(0, 4).map((item, index) => (
                                 <Col sm="12" lg="6" key={index} className="mb-3">
                                     <Card className="w-100 h-100 p-3 cursor-pointer">
                                         <Row className="h-100">
-                                            <Col sm="3" lg="3" className="p-0 ps-2">
+                                            <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
                                                 <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
                                                     <h3 className="text-white fw-bolder">SNBT</h3>
                                                     <h1 className="fw-bolder m-0">4</h1>
                                                 </div>
                                             </Col>
-                                            <Col sm="9" lg="9" className="h-100">
+                                            <Col xs='9' sm="9" lg="9" className="h-100">
                                                 <div className="h-100 d-flex flex-column justify-content-between">
                                                     <span>
                                                         <h5>Try Out UTBK 2024 #4 - SNBT</h5>
@@ -183,7 +184,7 @@ const TryOutSaya = () => {
                     </section>
                 </div>
             </div>
-        </>
+        </ProtectedRoute>
     );
 };
 

@@ -1,17 +1,18 @@
 'use client'
 
 import Image from "next/image";
-import { Button, Form, FormGroup, FormText, Input, Label } from "reactstrap";
+import { Button, Row, Col, Form, FormGroup, FormText, Input, Label } from "reactstrap";
 import user1 from "../../../../../public/images/users/user1.jpg";
-import { useState } from "react";
-import { db } from "../../../../../public/firebaseConfig";
-import { addDoc, collection, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { auth, db } from "../../../../../public/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
+import { addDoc, collection, doc, updateDoc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 // Fungsi untuk menangani operasi Firestore
 const handleFirestoreOperation = async (operation, data, id = null) => {
     try {
-        const docRef = id ? doc(db, "user", id) : collection(db, "user");
+        const docRef = id ? doc(db, "users", id) : collection(db, "users");
         if (operation === "add") {
             await addDoc(docRef, data);
         } else if (operation === "update") {
@@ -32,8 +33,48 @@ export default function Profile() {
     const [activeButton, setActiveButton] = useState('profile');
     const router = useRouter();
     const [formState, setFormState] = useState({
-        gambar: "", nama: "", username: "", email: "", asal_sekolah: "", kabupaten: "", jurusan1: "", jurusan2: "", kontak: "", motivasi: ""
+        gambar: "", nama: "", username: "", email: "", asal_sekolah: "", kabupaten: "", universitas: "", universitas2: "", universitas3: "", universitas4: "",
+         jurusan1: "", jurusan2: "",  jurusan1_2: "", jurusan2_2: "",  jurusan1_3: "", jurusan2_3: "",  jurusan1_4: "", jurusan2_4: "", phone: "", motivasi: ""
     });
+
+    const [userId, setUserId] = useState(null);
+
+    // Monitor perubahan user dan ambil data dari Firestore
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setUserId(user.uid);
+
+                // Ambil informasi user dari Firebase Authentication
+                const userProfile = {
+                    nama: user.displayName || "",
+                    username: user.email.split('@')[0] || "",
+                    email: user.email || "",
+                };
+
+                // Cek apakah data user sudah ada di Firestore
+                const docRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    // Jika data sudah ada, gabungkan dengan data yang ada di Firestore
+                    setFormState((prevState) => ({
+                        ...prevState,
+                        ...docSnap.data(),
+                        ...userProfile
+                    }));
+                } else {
+                    // Jika data belum ada, tampilkan informasi dari Firebase Authentication
+                    setFormState((prevState) => ({
+                        ...prevState,
+                        ...userProfile
+                    }));
+                }
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     // Fungsi untuk menangani perubahan input form
     const handleInputChange = (e) => {
@@ -47,21 +88,21 @@ export default function Profile() {
     // Fungsi untuk menangani submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const operation = formState.id ? "update" : "add";
-        const success = await handleFirestoreOperation(operation, formState);
-        if (success) {
+        if (!userId) return;
+
+        try {
+            // Simpan atau perbarui dokumen user berdasarkan UID di Firestore
+            await setDoc(doc(db, "users", userId), formState);
             alert("Data berhasil diupload");
-            setFormState({
-                gambar: "", nama: "", username: "", email: "", asal_sekolah: "", kabupaten: "", jurusan1: "", jurusan2: "", kontak: "", motivasi: ""
-            });
-        } else {
+        } catch (error) {
+            console.error("Error updating document: ", error);
             alert("Data tidak berhasil diupload");
         }
     };
 
     return (
         <>
-            <div className="position-fixed bg-white d-flex" style={{ width: '100vw', height: '100vh', zIndex: '999999', top: 0, left: 0 }}>
+            <div className="position-fixed bg-white d-flex profile" style={{ width: '100vw', height: '100vh', zIndex: '999999', top: 0, left: 0 }}>
                 <div className="w-25 border border-end-1 d-flex flex-column h-100 py-3 px-4">
                     <span className="d-flex align-items-center gap-2 mb-3">
                         <svg className="cursor-pointer" onClick={() => router.back()} width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -81,9 +122,9 @@ export default function Profile() {
                         Detail Pribadi
                     </Button>
                 </div>
-                <Form onSubmit={handleSubmit} className="w-75">
+                <Form onSubmit={handleSubmit} className="w-75 p-4">
                     <div className="w-100 h-100 d-flex flex-column justify-content-center align-items-center">
-                        <div className="w-75">
+                        <div className="w-75" style={{ height: '90%', overflowY: 'auto' }}>
                             {activeButton === 'profile' ? (
                                 <div className="w-100 bg-primerlg d-flex flex-column justify-content-center align-items-center p-3 rounded-3 mb-3">
                                     <div className="w-75 d-flex align-items-center flex-column mb-5">
@@ -133,7 +174,6 @@ export default function Profile() {
                                 </div>
                             ) : (
                                 <div className="w-100 bg-primerlg d-flex flex-column justify-content-center align-items-center p-3 rounded-3 mb-3">
-
                                     <div className="w-100">
                                         <FormGroup>
                                             <Label className="fw-light" for="asal_sekolah">Asal Sekolah</Label>
@@ -151,25 +191,121 @@ export default function Profile() {
                                                 <option value="sleman">Sleman</option>
                                             </Input>
                                         </FormGroup>
+                                        <Row>
+                                            <Col xs='12' sm='12' lg='6' className="border border-2 border-gray border-top-0 border-start-0 border-bottom-0">
+                                                <span>
+                                                    <FormGroup>
+                                                        <Label className="fw-semibold" for="jurusan1">Universitas Tujuan 1</Label>
+                                                        <Input id="universitas" name="universitas" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.universitas} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Universitas --</option>
+                                                            <option value="Universitas Hasanuddin">Universitas Hasanuddin</option>
+                                                            <option value="Universitas Negeri Makassar">Universitas Negeri Makassar</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Input id="jurusan1" name="jurusan1" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
+                                                        <Input id="jurusan2" name="jurusan2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2} onChange={handleInputChange}>
+                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                </span>
+                                                <hr />
+                                                <span>
+                                                    <FormGroup>
+                                                        <Label className="fw-semibold" for="jurusan1">Universitas Tujuan 3</Label>
+                                                        <Input id="universitas2" name="universitas2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.universitas2} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Universitas --</option>
+                                                            <option value="Universitas Hasanuddin">Universitas Hasanuddin</option>
+                                                            <option value="Universitas Negeri Makassar">Universitas Negeri Makassar</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Input id="jurusan1_2" name="jurusan1_2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1_2} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
+                                                        <Input id="jurusan2_2" name="jurusan2_2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2_2} onChange={handleInputChange}>
+                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                </span>
+                                            </Col>
+                                            <Col xs='12' sm='12' lg='6'>
+                                                <span>
+                                                    <FormGroup>
+                                                        <Label className="fw-semibold" for="jurusan1">Universitas Tujuan 2</Label>
+                                                        <Input id="universitas3" name="universitas3" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.universitas3} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Universitas --</option>
+                                                            <option value="Universitas Hasanuddin">Universitas Hasanuddin</option>
+                                                            <option value="Universitas Negeri Makassar">Universitas Negeri Makassar</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Input id="jurusan1_3" name="jurusan1_3" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1_3} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
+                                                        <Input id="jurusan2_3" name="jurusan2_3" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2_3} onChange={handleInputChange}>
+                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                </span>
+                                                <hr />
+                                                <span>
+                                                    <FormGroup>
+                                                        <Label className="fw-semibold" for="jurusan1">Universitas Tujuan 4</Label>
+                                                        <Input id="universitas4" name="universitas4" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.universitas4} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Universitas --</option>
+                                                            <option value="Universitas Hasanuddin">Universitas Hasanuddin</option>
+                                                            <option value="Universitas Negeri Makassar">Universitas Negeri Makassar</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Input id="jurusan1_4" name="jurusan1_4" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1_4} onChange={handleInputChange}>
+                                                            <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
+                                                        <Input id="jurusan2_4" name="jurusan2_4" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2_4} onChange={handleInputChange}>
+                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
+                                                            <option value="Teknik Informatika">Teknik Informatika</option>
+                                                            <option value="Sistem Informasi">Sistem Informasi</option>
+                                                        </Input>
+                                                    </FormGroup>
+                                                </span>
+                                            </Col>
+                                        </Row>
                                         <FormGroup>
-                                            <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
-                                            <Input id="jurusan1" name="jurusan1" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1} onChange={handleInputChange}>
-                                                <option value="">Pilih</option>
-                                                <option value="teknik-informatika">Teknik Informatika</option>
-                                                <option value="sistem-informasi">Sistem Informasi</option>
-                                            </Input>
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
-                                            <Input id="jurusan2" name="jurusan2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2} onChange={handleInputChange}>
-                                                <option value="">Pilih</option>
-                                                <option value="teknik-informatika">Teknik Informatika</option>
-                                                <option value="sistem-informasi">Sistem Informasi</option>
-                                            </Input>
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label className="fw-light" for="kontak">Kontak (Whatsapp)</Label>
-                                            <Input className="bg-transparent rounded-3 border border-1 border-black" id="kontak" name="kontak" type="text" value={formState.kontak} onChange={handleInputChange} />
+                                            <Label className="fw-light" for="phone">phone (Whatsapp)</Label>
+                                            <Input className="bg-transparent rounded-3 border border-1 border-black" id="phone" name="phone" type="text" value={formState.phone} onChange={handleInputChange} />
                                         </FormGroup>
                                         <FormGroup>
                                             <Label className="fw-light" for="motivasi">Motivasi (Max. 500 karakter)</Label>
