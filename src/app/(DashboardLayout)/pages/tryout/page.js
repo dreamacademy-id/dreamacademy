@@ -82,7 +82,7 @@ const About = () => {
                 </section>
                 <hr className="mt-1 mb-0" />
             </span>
-            <div className="mt-lg-5 pt-5 mt-sm-0">
+            <div className="mt-sm-0">
                 {allTryOut ? (
                     <AllTryOut />
                 ) : tryOutSaya ? (

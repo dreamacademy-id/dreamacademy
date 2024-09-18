@@ -136,7 +136,7 @@ const About = () => {
                         <Row className="h-100">
                             <Col sm="12" lg="3">
                                 <div className="border-primer d-flex justify-content-center align-items-center rounded-3 w-100 h-100">
-                                    Try Out
+                                    <img src={detailData.image} alt="Example Image" height={300} width={300} />
                                 </div>
                             </Col>
                             <Col sm="12" lg="9" className="mt-3 mt-lg-0">

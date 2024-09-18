@@ -16,7 +16,7 @@ import user1 from "../../../../../public/images/users/user2.jpg"
 const About = () => {
   return (
     <>
-      <div className="d-flex pt-4 justify-content-center align-items-center abouts" style={{ height: '80vh' }}>
+      <div className="d-flex pt-4 justify-content-center align-items-center abouts" style={{ height: '80vh', width: '100vw' }}>
         <span className="text-center">
           <h1 className="head1 fw-bolder">Tentang</h1>
           <Image src={logo} alt="" />
@@ -24,7 +24,7 @@ const About = () => {
           <p>Body text for your whole article or post. Well put in some lorem ipsum to show how a filled-out page might look</p>
         </span>
       </div>
-      <div className="d-flex gap-5 mb-4" style={{ minWidth: '100%', overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+      <div className="d-flex gap-5 mb-4" style={{ minWidth: '100%', width: '100vw',  overflowX: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
         <div className="card-container d-flex justify-content-between py-2">
           {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
             <Card key={index} className="" style={{width: '18rem', height: '400px', margin: 'auto 10px'}}>

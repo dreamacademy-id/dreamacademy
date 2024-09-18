@@ -17,7 +17,8 @@ export default function Riwayat() {
                     Kembali ke Dashboard TryOut
                 </section>
                 <h3 className="text-center my-4 fw-bolder">Riwayat TryOut</h3>
-                <section>
+                <section> 
+                <h1></h1>
                     {[0, 1, 2, 3, 4].map((index) => (
                         <div key={index} className="d-flex w-100 justify-content-between mb-3 align-items-center bg-graylg rounded-3 px-4 py-3">
                             <span>

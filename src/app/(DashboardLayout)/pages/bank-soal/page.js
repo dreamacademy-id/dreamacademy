@@ -12,9 +12,9 @@ export default function BankSoal() {
 
     return (
         <>
-            <div className="d-flex justify-content-center align-items-center w-100" style={{ height: '80vh' }}>
+            <div className="d-flex justify-content-center align-items-center w-100 pt-5 pt-lg-0" style={{ height: '80vh' }}>
                 <Row className="d-flex pt-4 justify-content-center w-100">
-                    <Col xs='12' sm='12' lg='2' className='d-flex justify-content-end'>
+                    <Col xs='12' sm='12' lg='2' className='d-flex justify-content-lg-end justify-content-center'>
                         <svg width="73" height="68" viewBox="0 0 73 68" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="34" cy="34" r="34" fill="#F9A419" fill-opacity="0.5" />
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M33.096 46.5574C31.1582 46.5574 29.6257 48.0568 29.6257 49.9145C29.6257 51.7705 31.1582 53.3112 33.096 53.3112H70.152V46.5574H33.096Z" fill="#F8FAFB" />
@@ -37,11 +37,11 @@ export default function BankSoal() {
                         </svg>
                     </Col>
                     <Col xs='12' sm='12' lg='10'>
-                        <span className="d-flex flex-column gap-2">
+                        <span className="d-flex flex-column gap-2 text-center text-lg-start mt-3 mt-lg-0">
                             <h1 className="fw-bolder">Bank Soal</h1>
                             <p className="fs-5">Uji kemampuanmu setelah belajar. Bank Soal ini cocok banget buat persiapan kamu sebelum ngerjain Tryout!</p>
                             <p className="fs-5">Tunggu apa lagi? Yuk, Daftar <b>Dream Academy!</b></p>
-                            <Button className="bg-primy w-25 border-0 rounded-5 px-5" onClick={handleSignIn}>Daftar Sekarang</Button>
+                            <Button className="bg-primy w-25 w-lg-75 mx-auto mx-lg-0 border-0 rounded-5 px-5" onClick={handleSignIn}>Daftar Sekarang</Button>
                         </span>
                     </Col>
                 </Row>

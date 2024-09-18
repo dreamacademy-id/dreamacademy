@@ -17,12 +17,13 @@ import user1 from "../../../../../../../../public/images/users/user1.jpg";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getDocs, getDoc, collection, updateDoc, deleteDoc, doc, addDoc, setDoc } from "firebase/firestore";
+import { getDocs, getDoc, collection, updateDoc, deleteDoc, doc, addDoc, setDoc, query, where } from "firebase/firestore";
 import { db } from "../../../../../../../../public/firebaseConfig";
 import { useParams, useRouter } from "next/navigation";
 import child from "../../../../../../../../public/images/background/child.png"
 import DOMPurify from "dompurify";
 import ProtectedRoute from "../../../ProtectedRoute";
+import { useAuth } from "../../../../../../../../public/AuthContext";
 
 async function fetchDataFromFirestore() {
     const querySnapshot = await getDocs(collection(db, 'questions_v1'));
@@ -93,6 +94,7 @@ export default function DetailSoal() {
     }
 
     const { id } = useParams();
+    const { currentUser } = useAuth(); // Get the current logged-in user
     const [detailData, setDetailData] = useState(null);
     const [dataTryOut, setDataTryOut] = useState([]);
     const [filteredDataTryOut, setFilteredDataTryOut] = useState([]);
@@ -100,6 +102,7 @@ export default function DetailSoal() {
     const [allQuestions, setAllQuestions] = useState([]);
     const safeHTML = DOMPurify.sanitize(allQuestions);
     const [selectedAnswers, setSelectedAnswers] = useState([]);
+    console.log('im', currentUser);
 
     let datas;
     filteredDataTryOut.forEach(element => {
@@ -193,9 +196,8 @@ export default function DetailSoal() {
     const [currentListQuestions, setCurrentListQuestions] = useState([]); // Untuk menyimpan listQuestions dari indeks saat ini
     const [isFixed, setIsFixed] = useState(false);
     const [scrollPos, setScrollPos] = useState(0);
-
-    console.log('per', currentFilteredIndex);
-
+    const [userHasAccess, setUserHasAccess] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (id) {
@@ -287,6 +289,55 @@ export default function DetailSoal() {
     }, []);
 
 
+    useEffect(() => {
+        const checkUserAccess = async () => {
+            if (!currentUser) {
+                // If the user is not logged in, redirect them
+                router.push('/login');
+                return;
+            }
+
+            const tryoutId = id; // Assuming `detailData` has the `id` of the tryout
+
+            // Query the userAnswer collection to check if the current user has already answered this tryout
+            const q = query(
+                collection(db, 'userAnswer'),
+                where('userId', '==', currentUser.uid),  // Ensure this matches your structure for user IDs
+                where('tryoutId', '==', tryoutId)  // Ensure this matches your structure for tryout IDs
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                // If there's a match, redirect to the index or another page
+                router.push('/pages/tryout'); // Change to your desired page
+            } else {
+                // If no match, allow access
+                setUserHasAccess(true);
+            }
+        };
+
+        checkUserAccess();
+    }, [currentUser, id, router]);
+
+    useEffect(() => {
+        // Set a timeout of 5 seconds (5000 milliseconds) for loading
+        const loadingTimer = setTimeout(() => {
+            setIsLoading(false);
+        }, 3000);
+
+        // Clear timeout if the component unmounts before the 5 seconds
+        return () => clearTimeout(loadingTimer);
+    }, []);
+
+    if (isLoading || userHasAccess === null) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <h3 className="loading-text">Loading, please wait...</h3>
+            </div>
+        );
+    }
 
     const formatTime = (seconds) => {
         const hrs = Math.floor(seconds / 3600);
@@ -339,7 +390,7 @@ export default function DetailSoal() {
         }
     };
 
-    const handleSelect = (choiceIndexOrValue) => {
+    const handleSelect = (choiceIndexOrValue, isTrue) => {
         const currentQuestion = currentListQuestions[selectedIndex];
 
         setSelectedAnswers(prev => {
@@ -356,8 +407,14 @@ export default function DetailSoal() {
             } else if (currentQuestion.type === 'isian') {
                 newChoices = [choiceIndexOrValue.trim()];
             } else if (currentQuestion.type === 'benar_salah') {
-                const selectedItem = currentQuestion.options[choiceIndexOrValue].option;
-                newChoices = [selectedItem];
+                const selectedItem = {
+                    option: currentQuestion.trueAnswer[choiceIndexOrValue].option,
+                    answer: isTrue ? true : false,  // Save 'Benar' or 'Salah' based on the user's selection
+                };
+                newChoices = updatedChoices.filter(
+                    (item) => item.option !== selectedItem.option
+                );
+                newChoices.push(selectedItem);
             } else {
                 const selectedItem = currentQuestion.options[choiceIndexOrValue];
                 newChoices = [selectedItem];
@@ -430,7 +487,7 @@ export default function DetailSoal() {
             });
 
             const userAnswersData = {
-                userId: 'user-id-placeholder',
+                userId: currentUser.uid,
                 tryoutId: id,
                 answers: formattedAnswers,
                 timeLeft: formatTime(timeLeft),
@@ -456,9 +513,15 @@ export default function DetailSoal() {
         router.push(`/pages/tryout/question/${id}/detail/selesai`);
     };
 
-    if (!detailData) {
-        return <div>Loading...</div>;
+    if (isLoading || !detailData) {
+        return (
+            <div className="loading-container">
+                <div className="spinner"></div>
+                <h3 className="loading-text">Loading, please wait...</h3>
+            </div>
+        );
     }
+
 
     console.log('time', formatTime(timeLeft));
 
@@ -488,6 +551,7 @@ export default function DetailSoal() {
                                 ></div>
                             </div>
                         </span>
+
                     </div>
                     <Row>
                         <Col sm="12" lg="9" className='order-2 order-sm-1'>
@@ -528,23 +592,36 @@ export default function DetailSoal() {
                                         </section>
                                     ) : currentListQuestions[selectedIndex].type === 'benar_salah' ? (
                                         <section className="mt-4">
-                                            {currentListQuestions[selectedIndex].options.map((option, choiceIndex) => (
+                                            {currentListQuestions[selectedIndex].trueAnswer.map((option, choiceIndex) => (
                                                 <span key={choiceIndex} className="d-flex mb-2">
-                                                    <div className="bg-graylg rounded-3 me-3 p-2" style={{ height: '100px', width: window.innerWidth < 576 ? '70%' : '85%'  }}>
+                                                    <div className="bg-graylg rounded-3 me-3 p-2" style={{ height: '100px', width: window.innerWidth < 576 ? '70%' : '85%' }}>
                                                         {option.option}
+                                                        {console.log('option', option)}
                                                     </div>
                                                     <Form style={{ height: '100px', width: window.innerWidth < 576 ? '30%' : '15%' }}>
                                                         <div className="bg-graylg rounded-3 d-flex h-100 w-100 justify-content-between" >
-                                                            <FormGroup check className="d-flex w-50 m-0 p-0 flex-column align-items-center justify-content-center" >
+                                                            <FormGroup check className="d-flex w-50 m-0 p-0 flex-column align-items-center justify-content-center">
                                                                 <Label>Benar</Label>
-                                                                <Input name="radio1" type="radio" className="mx-auto"
-                                                                    onChange={() => handleSelect(choiceIndex)} />{' '}
+                                                                <Input
+                                                                    name={`radio-${choiceIndex}`}
+                                                                    type="radio"
+                                                                    className="mx-auto"
+                                                                    onChange={() => handleSelect(choiceIndex, true)}  // Pass true for 'Benar'
+                                                                    checked={selectedAnswers[currentFilteredIndex]?.[selectedIndex]?.find(
+                                                                        item => item.option === option.option)?.answer === true}  // Check if 'Benar' is selected
+                                                                />
                                                             </FormGroup>
                                                             <hr className="border border-1 border-black" />
-                                                            <FormGroup check className="d-flex m-0 p-0 w-50 flex-column align-items-center justify-content-center" >
+                                                            <FormGroup check className="d-flex m-0 p-0 w-50 flex-column align-items-center justify-content-center">
                                                                 <Label>Salah</Label>
-                                                                <Input name="radio1" type="radio" className="mx-auto"
-                                                                    onChange={() => handleSelect(choiceIndex)} />{' '}
+                                                                <Input
+                                                                    name={`radio-${choiceIndex}`}
+                                                                    type="radio"
+                                                                    className="mx-auto"
+                                                                    onChange={() => handleSelect(choiceIndex, false)}  // Pass false for 'Salah'
+                                                                    checked={selectedAnswers[currentFilteredIndex]?.[selectedIndex]?.find(
+                                                                        item => item.option === option.option)?.answer === false}  // Check if 'Salah' is selected
+                                                                />
                                                             </FormGroup>
                                                         </div>
                                                     </Form>
@@ -633,7 +710,6 @@ export default function DetailSoal() {
                                                         : handleNext
                                                 }
                                             >
-                                                {/* {selectedIndex === currentListQuestions.length - 1 ? "Selesai" : "Selanjutnya ≫"} */}
                                                 {selectedIndex === currentListQuestions.length - 1 ? "Selesai" : "Selanjutnya ≫"}
                                             </Button>
                                             {/* <Button onClick={handleNextListQuestions}>Finish</Button> */}
@@ -658,7 +734,7 @@ export default function DetailSoal() {
                                 <p className="text-muted">Tuggu hingga waktu selesai untuk melanjutkan Tryout</p>
                             </section>
                             <section className="d-flex flex-column align-items-center">
-                                <Image src={child} alt="" className={`${window.innerWidth < 576 && 'object-fit-contain mb-2'}`} style={{width: window.innerWidth < 576 && '100%'}} />
+                                <Image src={child} alt="" className={`${window.innerWidth < 576 && 'object-fit-contain mb-2'}`} style={{ width: window.innerWidth < 576 && '100%' }} />
                                 <Button className="rounded-5 bg-primy border-0 px-5"
                                     onClick={handleNextListQuestions}
                                 >Kembali Ke Try Out Saya</Button>

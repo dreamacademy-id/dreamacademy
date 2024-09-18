@@ -68,7 +68,7 @@ export default function Login() {
                                     id="examplePassword"
                                     name="password"
                                     placeholder="Password"
-                                    type="password"
+                                    type={showPassword ? "text" : "password"} // Switch between text and password
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="border-0"
                                 />

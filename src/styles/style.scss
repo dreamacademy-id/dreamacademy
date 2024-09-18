@@ -72,9 +72,43 @@ a {
   border-color: #28a745; /* Hijau */
 }
 
-.btnHover:hover{
+.btnHover:hover {
   background-color: var(--primary-color);
   color: #fff !important;
+}
+
+/* Center the loading spinner and text on the page */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f0f4f8; /* Soft background color */
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Create the spinner animation */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 6px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3498db; /* Blue color for spinner */
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+/* Keyframes for rotating the spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 //template
@@ -316,7 +350,7 @@ a {
   border-radius: 10px;
 }
 
-.tryoutSec4 b{
+.tryoutSec4 b {
   font-size: 15px;
 }
 
@@ -511,31 +545,29 @@ a {
 
 //bundling
 
-.bundling ul{
+.bundling ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.bundling ul li{
+.bundling ul li {
   font-size: 14px;
   margin-bottom: 10px;
 }
 
 .bundling ul li:before {
-  content: '✓';
+  content: "✓";
   margin-right: 10px;
   font-weight: bolder;
   margin-bottom: 10px;
 }
 
-.bundling .content p{
+.bundling .content p {
   font-size: 14px !important;
 }
 
-
 //bundling
-
 
 @media (max-width: 576px) {
   .navbar {
@@ -726,11 +758,12 @@ a {
     width: 100% !important;
   }
 
-  .detailAll{
+  .detailAll {
     padding: 12vh 0 !important;
   }
 
-  .tryoutSec4, .tryoutSec5{
+  .tryoutSec4,
+  .tryoutSec5 {
     margin-left: 0;
   }
 
@@ -740,19 +773,19 @@ a {
     margin-bottom: 10px;
   }
 
-  .w-lg-90{
+  .w-lg-90 {
     width: 90% !important;
   }
-  
-  .w-lg-75{
+
+  .w-lg-75 {
     width: 75% !important;
   }
 
-  .regTrigger{
+  .regTrigger {
     padding: 20px 0;
   }
 
-  .regTrigger .tables svg{
+  .regTrigger .tables svg {
     width: 24px !important;
     height: 24px !important;
   }
@@ -773,12 +806,12 @@ a {
     width: 100% !important;
   }
 
-  .tryoutSec3 div{
+  .tryoutSec3 div {
     flex-direction: column;
     align-items: start;
   }
 
-  .tryoutSec4 .jurusan{
+  .tryoutSec4 .jurusan {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -787,5 +820,4 @@ a {
   .tryoutSec4 .bg-blur {
     font-size: 12px;
   }
-
-}   
+}

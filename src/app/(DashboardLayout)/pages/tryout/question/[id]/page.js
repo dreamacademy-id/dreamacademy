@@ -35,6 +35,8 @@ export default function Soal() {
     const { id } = useParams(); // Ambil parameter dinamis dari URL
     const [detailData, setDetailData] = useState(null);
 
+    const [type, setType] = useState(null);
+
     //TPS
     const tps = detailData?.listTest?.filter(item => item.nameTest === "TPS") ?? [];
     let tpsListSubtests = tps.flatMap(element => element.listSubtest);
@@ -73,6 +75,13 @@ export default function Soal() {
         }
     }, [id]);
 
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const queryParams = new URLSearchParams(window.location.search);
+            setType(queryParams.get('type'));
+        }
+    }, []);
+
     if (!detailData) {
         return <div>Loading...</div>;
     }
@@ -109,10 +118,12 @@ export default function Soal() {
                                     </p>
                                 </span>
                                 <span className='d-flex flex-column flex-lg-row align-items-center'>
-                                    <Link href={`/pages/tryout/question/${id}/detail`}>
-                                        <Button className="bg-primy rounded-5 px-4 border-0 me-lg-4">Mulai Mengerjakan ≫</Button>
-                                    </Link>
-                                    <Link href={`/pages/tryout/question/${id}/riwayat`} className="text-decoration-underline">
+                                    {!type && (
+                                        <Link href={`/pages/tryout/question/${id}/detail`}>
+                                            <Button className="bg-primy rounded-5 px-4 border-0 me-lg-4">Mulai Mengerjakan ≫</Button>
+                                        </Link>
+                                    )}
+                                    <Link href={`/pages/tryout/question/${id}/detail/selesai`} className="text-decoration-underline">
                                         Riwayat Pengerjaan
                                     </Link>
                                 </span>
@@ -171,11 +182,11 @@ export default function Soal() {
                                         <h5> TPS</h5>
                                         <span>
                                             {tpsListSubtests.map((item, index) => (
-                                                    <div key={index} className="bg-white">
-                                                        <p>{item.name}</p>
-                                                        <b>{item.timeMinute} Menit | {item.numberQuestions} Soal</b>
-                                                    </div>
-                                                ))}
+                                                <div key={index} className="bg-white">
+                                                    <p>{item.name}</p>
+                                                    <b>{item.timeMinute} Menit | {item.numberQuestions} Soal</b>
+                                                </div>
+                                            ))}
                                         </span>
                                     </span>
                                 </div>

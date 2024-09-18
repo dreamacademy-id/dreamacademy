@@ -1,14 +1,29 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import { Row, Col, FormGroup, Label, Input, FormText, Form, Button, Card } from "reactstrap";
+import { getDocs, getDoc, collection, updateDoc, deleteDoc, doc, addDoc, setDoc, query, where } from "firebase/firestore";
 import Link from "next/link";
 import { db } from "../../../../../../../../public/firebaseConfig";
-import { useParams } from "next/navigation";
-import { doc, getDoc } from 'firebase/firestore';
+import { useParams, useRouter } from "next/navigation";
 import { Image } from "react-feather";
 import ProtectedRoute from "../../../ProtectedRoute";
+import { useAuth } from "../../../../../../../../public/AuthContext";
 
+async function updateData_TryOut(id, updatedData) {
+    try {
+        const docRef = doc(db, 'tryout_v1', id);
+        await updateDoc(docRef, updatedData);
+        console.log('Updating Succes');
+
+        return true;
+    } catch (error) {
+        console.error("Error updating document: ", error);
+        return false;
+    }
+}
 const Pembayaran2 = () => {
+    const router = useRouter();
+    const { currentUser } = useAuth(); // Get the current logged-in user
     const eWallet = ["Go-Pay", "OVO", "Dana", "LinkAja"];
     const image = [
         "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Gopay_logo.svg/2560px-Gopay_logo.svg.png",
@@ -28,12 +43,12 @@ const Pembayaran2 = () => {
         setSelectedIndex(index);
     };
 
-    const handleItems = () =>{
+    const handleItems = () => {
         setSelectedItem2(selectedItem);
         setMetode(!metode);
     }
 
-    console.log('yg terklik', selectedItem);
+    // console.log('yg terklik', selectedItem);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -69,11 +84,29 @@ const Pembayaran2 = () => {
         return <div>Loading...</div>;
     }
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (detailData.claimedUid.includes(currentUser.uid)) {
+            console.log("data sudah ada");
+        } else {
+            try {
+                const newUID = [...detailData.claimedUid, currentUser.uid];
+                const added = await updateData_TryOut(id, { claimedUid: newUID });
+                added ? console.error("Data berhasil di upload") : console.error("Data gagal di upload");
+                // console.log('ini array uid ' + newUID);
+                // console.log('ini id truout ' + id);
+                router.push(`/pages/tryout/detail/${id}/pembayaran/done`);
+            } catch (error) {
+                console.error("gagal upload image:", error);
+            }
+        }
+
+    };
 
     return (
         <ProtectedRoute>
             <div className="w-100 d-flex justify-content-center" style={{ height: '89vh', marginTop: window.innerWidth < 576 ? '0%' : '11vh', zIndex: '99' }}>
-                <div className="w-50 w-lg-100 h-100 pb-5" style={{paddingTop: window.innerWidth < 576 ? '13vh' : '0%'}} >
+                <div className="w-50 w-lg-100 h-100 pb-5" style={{ paddingTop: window.innerWidth < 576 ? '13vh' : '0%' }} >
                     <section className="d-flex w-100">
                         <Link href={`/pages/tryout/detail/${id}`}>
                             <svg className="me-2" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -90,7 +123,7 @@ const Pembayaran2 = () => {
                                     <Row>
                                         <Col xs='4' sm="3" lg="3">
                                             <div className="border border-1 h-100 w-100 rounded border-black d-flex justify-content-center align-items-center">
-                                                Try Out
+                                                <img src={detailData.image} height={150} width={150} />
                                             </div>
                                         </Col>
                                         <Col xs='8' sm="9" lg="9" className="d-flex py-2 ps-0 flex-column">
@@ -163,7 +196,7 @@ const Pembayaran2 = () => {
                                                             {eWallet.map((item, index) => (
                                                                 <div key={index}
                                                                     className={`grid-item border border-1 rounded-3 p-2 mb-3 w-100 cursor-pointer ${selectedIndex === index ? 'border-primer border-3' : ''}`}
-                                                                    onClick={() => handleItemClick(item ,index)}>
+                                                                    onClick={() => handleItemClick(item, index)}>
                                                                     <Row className="w-100">
                                                                         <Col xs='4' sm="3" lg="3" className="d-flex align-items-center">
                                                                             <img src={image[index]} alt="" width={100} />
@@ -230,9 +263,8 @@ const Pembayaran2 = () => {
                                 </span>
                             </section>
                         </div>
-                        <Link href={`/pages/tryout/detail/${id}/pembayaran/done`}>
-                            <Button className="bg-primer rounded-3 w-100 mb-5 border-0">Daftar Sekarang</Button>
-                        </Link>
+                        <Button className="bg-primer rounded-3 w-100 mb-5 border-0" onClick={handleSubmit}>Daftar Sekarang</Button>
+
                     </div>
                 </div>
             </div>

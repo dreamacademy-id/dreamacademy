@@ -12,9 +12,9 @@ export default function Try_out() {
 
     return (
         <>
-            <div className="d-flex justify-content-center align-items-center w-100" style={{ height: '80vh' }}>
+            <div className="d-flex justify-content-center align-items-center w-100 pt-5 pt-lg-0" style={{ height: '80vh' }}>
                 <Row className="d-flex pt-4 justify-content-center w-100">
-                    <Col xs='12' sm='12' lg='2' className='d-flex justify-content-end'>
+                    <Col xs='12' sm='12' lg='2' className='d-flex justify-content-lg-end justify-content-center'>
                         <svg width="68" height="68" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="34" cy="34" r="34" fill="#F9A419" fill-opacity="0.5" />
                             <g filter="url(#filter0_d_2057_1552)">
@@ -46,11 +46,11 @@ export default function Try_out() {
                         </svg>
                     </Col>
                     <Col xs='12' sm='12' lg='10'>
-                        <span className="d-flex flex-column gap-2">
+                        <span className="d-flex flex-column gap-2 text-center text-lg-start mt-3 mt-lg-0">
                             <h1 className="fw-bolder">Try Out</h1>
                             <p className="fs-5">Soal tryout dibuat oleh alumni PTN terbaik dengan sistem penilaian IRT untuk membantu kamu masuk PTN impian!</p>
                             <p className="fs-5">Tunggu apa lagi? Yuk, Daftar <b>Dream Academy!</b></p>
-                            <Button className="bg-primy w-25 border-0 rounded-5 px-5" onClick={handleSignIn}>Daftar Sekarang</Button>
+                            <Button className="bg-primy w-25 w-lg-75 mx-auto mx-lg-0 border-0 rounded-5 px-5" onClick={handleSignIn}>Daftar Sekarang</Button>
                         </span>
                     </Col>
                 </Row>
