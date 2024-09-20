@@ -59,10 +59,9 @@ const About = () => {
     }
     return (
         <ProtectedRoute>
-            <span className="position-fixed w-100 navtry d-flex flex-column justify-content-end"
-                style={{ height: '10vh', top: '8%', left: 0, zIndex: '99', minWidth: '100%', overflowX: 'auto' }}>
-                <section className="d-flex justify-content-start justify-content-lg-center gap-5 pt-3 px-3 w-100"
-                    style={{ overflowX: 'auto', whiteSpace: 'nowrap', scrollBehavior: 'smooth' }}>
+            <span className="pagesTryOut position-fixed w-100 navtry d-flex flex-column justify-content-end"
+                style={{ height: '10vh', top: '8%', left: 0, zIndex: '99', minWidth: '100%' }}>
+                <section className="d-flex justify-content-start justify-content-lg-center gap-5 pt-3 px-3 w-100">
                     <Link href="#saya" onClick={() => handleAll('all')}
                         className={activeLink === 'all' ? 'fw-bolder active-link' : ''}
                         style={{ width: windowWidth < 576 ? '18rem' : 'auto', display: 'inline-block' }}>

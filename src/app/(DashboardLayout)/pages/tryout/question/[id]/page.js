@@ -8,6 +8,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from "react";
 import { useRouter } from 'next/navigation'; // Updated import
 import ProtectedRoute from "../../ProtectedRoute";
+import Image from "next/image";
+
 
 const formatDate = (dateString) => {
     const months = [
@@ -17,18 +19,15 @@ const formatDate = (dateString) => {
 
     const date = new Date(dateString);
 
-    // Convert to WITA time zone (UTC+8)
-    const witaOffset = 8 * 60; // 8 hours in minutes
-    const localDate = new Date(date.getTime() + witaOffset * 60000);
+    const day = date.getDate().toString().padStart(2, '0'); // Format day to 2 digits
+    const month = months[date.getMonth()]; // Get month name
+    const year = date.getFullYear(); // Get year
+    const hours = date.getHours().toString().padStart(2, '0'); // Get hours, padded to 2 digits
+    const minutes = date.getMinutes().toString().padStart(2, '0'); // Get minutes, padded to 2 digits
 
-    const day = localDate.getDate().toString().padStart(2, '0'); // Pad day to 2 digits
-    const month = months[localDate.getMonth()]; // Get month name
-    const year = localDate.getFullYear(); // Get year
-    const hours = localDate.getHours().toString().padStart(2, '0'); // Get hours
-    const minutes = localDate.getMinutes().toString().padStart(2, '0'); // Get minutes
-
-    return `${day} ${month} ${year} ${hours}:${minutes} WITA`;
+    return `${day} ${month} ${year} ${hours}:${minutes}`;
 };
+
 
 export default function Soal() {
     const TPS = ["Kemampuan Penalaran Umum", "Pengetahuan dan Pemahaman Umum", "Kemampuan Memahami Bacaan dan Menulis", "Pengetahuan Kuantitatif"];
@@ -36,6 +35,7 @@ export default function Soal() {
     const [detailData, setDetailData] = useState(null);
 
     const [type, setType] = useState(null);
+    
 
     //TPS
     const tps = detailData?.listTest?.filter(item => item.nameTest === "TPS") ?? [];
@@ -86,7 +86,7 @@ export default function Soal() {
         return <div>Loading...</div>;
     }
 
-    // console.log('ini halaman', detailData.tps[0].name);
+    console.log('ini halaman', detailData);
 
     let idsoal;
     return (
@@ -105,12 +105,14 @@ export default function Soal() {
                     <div className="bg-graylg py-3 px-5 mb-4 rounded-3">
                         <Row>
                             <Col sm="3" lg="3">
-                                <div className="bg-primy h-100 rounded-3">TryOut</div>
+                                <div className="bg-primy rounded-3" style={{height: '170px'}}>
+                                    <img src={detailData.image} style={{objectFit: 'cover', width: '100%', height: '100%'}} />
+                                </div>
                             </Col>
                             <Col sm="9" lg="9">
                                 <span>
                                     <h5>{detailData.toName}</h5>
-                                    <p>{formatDate(detailData.started)} s.d. {formatDate(detailData.ended)}</p>
+                                    <p>{formatDate(detailData.started)} WITA s.d. {formatDate(detailData.ended)} WITA</p>
                                 </span>
                                 <span>
                                     <p className="pb-3 pt-2">
@@ -118,14 +120,15 @@ export default function Soal() {
                                     </p>
                                 </span>
                                 <span className='d-flex flex-column flex-lg-row align-items-center'>
-                                    {!type && (
+                                    {!type ? (
                                         <Link href={`/pages/tryout/question/${id}/detail`}>
                                             <Button className="bg-primy rounded-5 px-4 border-0 me-lg-4">Mulai Mengerjakan ≫</Button>
                                         </Link>
-                                    )}
+                                    ) : (
                                     <Link href={`/pages/tryout/question/${id}/detail/selesai`} className="text-decoration-underline">
                                         Riwayat Pengerjaan
                                     </Link>
+                                    )}
                                 </span>
                             </Col>
                         </Row>

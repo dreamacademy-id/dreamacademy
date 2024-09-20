@@ -300,6 +300,11 @@ a {
 
 // tryout
 
+.allTryOut .card:hover,
+.tryOutSaya .row .card:hover {
+  transform: scale(1.05);
+}
+
 .tryoutSec2 div {
   background-color: var(--primary-color);
   width: 50px;
@@ -819,5 +824,11 @@ a {
 
   .tryoutSec4 .bg-blur {
     font-size: 12px;
+  }
+
+  .pagesTryOut section {
+    overflow-x: auto;
+    white-space: nowrap;
+    scroll-behavior: smooth;
   }
 }

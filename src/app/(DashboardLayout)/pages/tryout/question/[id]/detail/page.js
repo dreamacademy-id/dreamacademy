@@ -63,15 +63,14 @@ export default function DetailSoal() {
     };
 
     const handleNext = () => {
-        setSelectedIndex((prevIndex) => Math.min(prevIndex + 1, currentListQuestions.length - 1));
+        setSelectedIndex(prevIndex => Math.min(prevIndex + 1, currentListQuestions.length - 1));
     };
 
     const [canExecute, setCanExecute] = useState(false);
-    const [timeExecute, setTimeExecute] = useState(20); // 120 seconds for 2 minutes
-
+    const [timeExecute, setTimeExecute] = useState(10); // 120 seconds for 2 minutes
 
     useEffect(() => {
-        // Set an interval to decrease the time left every second
+        // Timer 2 menit untuk mengeksekusi setelah waktu habis
         const timerInterval = setInterval(() => {
             setTimeExecute(prev => {
                 if (prev <= 1) {
@@ -83,15 +82,42 @@ export default function DetailSoal() {
             });
         }, 1000); // Update every second
 
-        // Clean up the interval when the component unmounts
         return () => clearInterval(timerInterval);
     }, []);
+
 
     console.log('vela', timeExecute);
 
     const handleNextSubTest = () => {
-        setNextSubTest(true);
-    }
+        if (currentFilteredIndex < filteredDataTryOut.length - 1) {
+            const newIndex = currentFilteredIndex + 1;
+            const nextQuestions = filteredDataTryOut[newIndex]?.listQuestions || [];
+
+            setCurrentFilteredIndex(newIndex); // Pindah ke subtest berikutnya
+            setCurrentListQuestions(nextQuestions); // Set pertanyaan subtest berikutnya
+            setSelectedIndex(0); // Reset selectedIndex ke 0 untuk subtest baru
+            setNextSubTest(true); // Aktifkan tampilan sementara
+            setCanExecuteNext(false); // Reset tombol menjadi tidak bisa diklik
+        } else {
+            console.log("End of all subtests.");
+            handleSubmit(); // Jika sudah di subtest terakhir, submit hasil
+        }
+    };
+
+
+    const handleNextOrSubmit = () => {
+        // Cek apakah ini pertanyaan terakhir di subtest dan subtest terakhir
+        if (
+            selectedIndex === currentListQuestions.length - 1 &&
+            currentFilteredIndex === filteredDataTryOut.length - 1
+        ) {
+            handleSubmit(); // Jalankan handleSubmit jika sudah berada di pertanyaan terakhir dan subtest terakhir
+        } else if (selectedIndex === currentListQuestions.length - 1) {
+            handleNextSubTest(); // Jika berada di pertanyaan terakhir subtest, pindah ke subtest berikutnya
+        } else {
+            handleNext(); // Pindah ke pertanyaan berikutnya dalam subtest yang sama
+        }
+    };
 
     const { id } = useParams();
     const { currentUser } = useAuth(); // Get the current logged-in user
@@ -199,6 +225,72 @@ export default function DetailSoal() {
     const [userHasAccess, setUserHasAccess] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // useEffect(() => {
+    //     if (id) {
+    //         const fetchDetailData = async () => {
+    //             const docRef = doc(db, 'tryout_v1', id);
+    //             const docSnap = await getDoc(docRef);
+    //             if (docSnap.exists()) {
+    //                 const data = docSnap.data();
+    //                 setDetailData(data);
+
+    //                 const tpsListSubtests = data.listTest
+    //                     .filter(item => item.nameTest === "TPS")
+    //                     .flatMap(element => element.listSubtest);
+
+    //                 const literasiListSubtests = data.listTest
+    //                     .filter(item => item.nameTest === "Tes Literasi")
+    //                     .flatMap(element => element.listSubtest);
+
+    //                 const idQuestionsList = tpsListSubtests.map(subtest => subtest.idQuestions);
+    //                 const idQuestionsListLiterasi = literasiListSubtests.map(subtest => subtest.idQuestions);
+
+    //                 const filteredData = dataTryOut.filter(dataItem =>
+    //                     idQuestionsList.includes(dataItem.id)
+    //                 );
+
+    //                 setFilteredDataTryOut(filteredData);
+    //             } else {
+    //                 console.log('No such document!');
+    //             }
+    //         };
+    //         fetchDetailData();
+    //     }
+    // }, [id, dataTryOut]);
+
+    // const [nextSubTest, setNextSubTest] = useState(false); // Kontrol tampilan konten subtest
+    const [canExecuteNext, setCanExecuteNext] = useState(false); // Kontrol apakah tombol bisa diklik setelah 15 detik
+    const [timer, setTimer] = useState(15); // Timer 15 detik
+    const [showNextSubTestContent, setShowNextSubTestContent] = useState(false); // Kontrol tampilan soal baru
+
+    console.log('channa', currentListQuestions)
+
+    useEffect(() => {
+        let timerInterval;
+
+        if (nextSubTest) {
+            // Reset timer setiap kali nextSubTest aktif
+            setTimer(15);
+            setCanExecuteNext(false); // Nonaktifkan tombol saat timer berjalan
+            setShowNextSubTestContent(false); // Sembunyikan soal sampai tombol diklik
+
+            // Mulai countdown 15 detik
+            timerInterval = setInterval(() => {
+                setTimer((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timerInterval);
+                        setCanExecuteNext(true); // Aktifkan tombol setelah 15 detik
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+
+        return () => clearInterval(timerInterval);
+    }, [nextSubTest]);
+
+
     useEffect(() => {
         if (id) {
             const fetchDetailData = async () => {
@@ -219,9 +311,20 @@ export default function DetailSoal() {
                     const idQuestionsList = tpsListSubtests.map(subtest => subtest.idQuestions);
                     const idQuestionsListLiterasi = literasiListSubtests.map(subtest => subtest.idQuestions);
 
-                    const filteredData = dataTryOut.filter(dataItem =>
+                    // Filter dataTryOut sesuai dengan idQuestions di tpsListSubtests
+                    let filteredData = dataTryOut.filter(dataItem =>
                         idQuestionsList.includes(dataItem.id)
                     );
+
+                    // Sort filteredData sesuai dengan urutan idQuestions di tpsListSubtests
+                    filteredData = filteredData.sort((a, b) => {
+                        const indexA = idQuestionsList.indexOf(a.id);
+                        const indexB = idQuestionsList.indexOf(b.id);
+                        return indexA - indexB; // Sort based on the order in tpsListSubtests
+                    });
+
+                    console.log('malu:', tpsListSubtests);
+                    console.log('maluu:', filteredData);
 
                     setFilteredDataTryOut(filteredData);
                 } else {
@@ -232,26 +335,29 @@ export default function DetailSoal() {
         }
     }, [id, dataTryOut]);
 
+
     useEffect(() => {
-        // Mengambil listQuestions dari indeks filteredDataTryOut saat ini
         if (filteredDataTryOut.length > 0) {
-            const questions = filteredDataTryOut[currentFilteredIndex]?.listQuestions || [];
-            setCurrentListQuestions(questions);
+            const allQuestions = filteredDataTryOut.flatMap(data => data.listQuestions || []);
+            setCurrentListQuestions(allQuestions);
         }
-    }, [filteredDataTryOut, currentFilteredIndex]);
+    }, [filteredDataTryOut]);
+
+    console.log('idANomali', currentListQuestions)
+
+    useEffect(() => {
+        if (filteredDataTryOut.length > 0) {
+            // Menampilkan pertanyaan pertama dari filteredDataTryOut
+            const currentQuestions = filteredDataTryOut[0]?.listQuestions || [];
+            setCurrentListQuestions(currentQuestions); // Set pertanyaan pertama
+            setCurrentFilteredIndex(0); // Pastikan index awal diset ke 0
+        }
+    }, [filteredDataTryOut]);
 
     const handleNextListQuestions = () => {
-        if (canExecute) {
-            if (currentFilteredIndex < filteredDataTryOut.length - 1) {
-                setCurrentFilteredIndex(prevIndex => {
-                    const newIndex = prevIndex + 1;
-                    setSelectedIndex(0); // Reset selectedIndex to 0 for the new subtest
-                    return newIndex;
-                });
-            } else {
-                console.log("End of all listQuestions in filteredDataTryOut");
-            }
-            setNextSubTest(false);
+        if (canExecuteNext) {
+            setShowNextSubTestContent(true); // Tampilkan soal setelah tombol diklik
+            setNextSubTest(false); // Matikan tampilan sementara setelah soal ditampilkan
         }
     };
 
@@ -270,23 +376,23 @@ export default function DetailSoal() {
     }, [timeLeft, id]);
 
 
-    useEffect(() => {
-        const handleScroll = () => {
-            const offsetTop = document.getElementById('nomorSoal').offsetTop;
-            if (window.scrollY > offsetTop) {
-                setIsFixed(true);
-            } else {
-                setIsFixed(false);
-            }
-        };
+    // useEffect(() => {
+    //     const handleScroll = () => {
+    //         const offsetTop = document.getElementById('nomorSoal').offsetTop;
+    //         if (window.scrollY > offsetTop) {
+    //             setIsFixed(true);
+    //         } else {
+    //             setIsFixed(false);
+    //         }
+    //     };
 
-        window.addEventListener('scroll', handleScroll);
+    //     window.addEventListener('scroll', handleScroll);
 
-        // Clean up the event listener when the component unmounts
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
-    }, []);
+    //     // Clean up the event listener when the component unmounts
+    //     return () => {
+    //         window.removeEventListener('scroll', handleScroll);
+    //     };
+    // }, []);
 
 
     useEffect(() => {
@@ -529,9 +635,7 @@ export default function DetailSoal() {
         console.log('oii', question.question)
     })
 
-
     const lastIndex = filteredDataTryOut.length - 1;
-
 
     return (
         <ProtectedRoute>
@@ -551,7 +655,6 @@ export default function DetailSoal() {
                                 ></div>
                             </div>
                         </span>
-
                     </div>
                     <Row>
                         <Col sm="12" lg="9" className='order-2 order-sm-1'>
@@ -703,14 +806,11 @@ export default function DetailSoal() {
                                         <div className="w-100">
                                             <Button
                                                 className={`border-0 w-100 rounded-5 bg-primy ${selectedIndex === currentListQuestions.length - 1 ? 'bg-warning' : 'bg-primy'}`}
-                                                // onClick={selectedIndex === currentListQuestions.length - 1 ? handleSubmit : handleNext}
-                                                onClick={
-                                                    selectedIndex === currentListQuestions.length - 1
-                                                        ? (currentFilteredIndex === lastIndex ? handleSubmit : handleNextSubTest)
-                                                        : handleNext
-                                                }
+                                                onClick={handleNextOrSubmit}
                                             >
-                                                {selectedIndex === currentListQuestions.length - 1 ? "Selesai" : "Selanjutnya ≫"}
+                                                {selectedIndex === currentListQuestions.length - 1 && currentFilteredIndex === filteredDataTryOut.length - 1
+                                                    ? "Selesai"
+                                                    : "Selanjutnya ≫"}
                                             </Button>
                                             {/* <Button onClick={handleNextListQuestions}>Finish</Button> */}
                                         </div>
@@ -729,15 +829,19 @@ export default function DetailSoal() {
                                     <path d="M47.0476 13.4286C43.3394 13.4286 40.3333 10.4225 40.3333 6.71428V6.71428C40.3333 3.00609 43.3394 0 47.0476 0H73.9524C77.6606 0 80.6667 3.00609 80.6667 6.71428V6.71428C80.6667 10.4225 77.6606 13.4286 73.9524 13.4286H47.0476ZM53.7778 80.5635C53.7778 84.276 56.7874 87.2857 60.5 87.2857V87.2857C64.2126 87.2857 67.2222 84.276 67.2222 80.5635V53.7222C67.2222 50.0096 64.2126 47 60.5 47V47C56.7874 47 53.7778 50.0096 53.7778 53.7222V80.5635ZM60.5 141C52.2093 141 44.3936 139.406 37.0529 136.219C29.7122 133.032 23.2992 128.695 17.8139 123.207C12.3286 117.719 7.98824 111.312 4.79294 103.984C1.59765 96.6566 0 88.8524 0 80.5714C0 72.2905 1.59765 64.484 4.79294 57.152C7.98824 49.82 12.3286 43.4146 17.8139 37.9357C23.2992 32.4568 29.7145 28.1217 37.0596 24.9301C44.4048 21.7386 52.2182 20.1429 60.5 20.1429C67.4463 20.1429 74.1125 21.2619 80.4986 23.5C84.987 25.073 89.2817 27.1435 93.3826 29.7115C96.3936 31.597 100.353 31.3652 102.867 28.8547L103.192 28.5302C105.788 25.9366 109.995 25.9366 112.592 28.5301V28.5301C115.193 31.1281 115.193 35.3434 112.592 37.9413L112.278 38.2547C109.766 40.7638 109.534 44.7225 111.421 47.7297C113.992 51.8252 116.064 56.1141 117.639 60.5964C119.88 66.975 121 73.6333 121 80.5714C121 88.8524 119.402 96.6588 116.207 103.991C113.012 111.323 108.671 117.728 103.186 123.207C97.7008 128.686 91.2855 133.023 83.9404 136.219C76.5952 139.415 68.7818 141.009 60.5 141ZM60.5 127.571C73.4963 127.571 84.588 122.983 93.775 113.807C102.962 104.631 107.556 93.5524 107.556 80.5714C107.556 67.5905 102.962 56.5119 93.775 47.3357C84.588 38.1595 73.4963 33.5714 60.5 33.5714C47.5037 33.5714 36.412 38.1595 27.225 47.3357C18.038 56.5119 13.4444 67.5905 13.4444 80.5714C13.4444 93.5524 18.038 104.631 27.225 113.807C36.412 122.983 47.5037 127.571 60.5 127.571Z" fill="#27B262" />
                                 </svg>
                                 <h1 className="fw-bolder my-3">
-                                    {formatTime(timeExecute)}
+                                    {formatTime(timer)}
                                 </h1>
                                 <p className="text-muted">Tuggu hingga waktu selesai untuk melanjutkan Tryout</p>
                             </section>
                             <section className="d-flex flex-column align-items-center">
                                 <Image src={child} alt="" className={`${window.innerWidth < 576 && 'object-fit-contain mb-2'}`} style={{ width: window.innerWidth < 576 && '100%' }} />
-                                <Button className="rounded-5 bg-primy border-0 px-5"
+                                <Button
+                                    className="rounded-5 bg-primy border-0 px-5"
                                     onClick={handleNextListQuestions}
-                                >Kembali Ke Try Out Saya</Button>
+                                    disabled={!canExecuteNext} // Tombol akan nonaktif selama 15 detik
+                                >
+                                    Kembali Ke Soal
+                                </Button>
                             </section>
                         </div>
                     </div>

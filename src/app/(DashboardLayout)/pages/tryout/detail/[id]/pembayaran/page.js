@@ -87,7 +87,9 @@ const Pembayaran2 = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (detailData.claimedUid.includes(currentUser.uid)) {
-            console.log("data sudah ada");
+            //bagaimana buat popup disini
+            window.alert("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
+            console.log("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
         } else {
             try {
                 const newUID = [...detailData.claimedUid, currentUser.uid];
@@ -196,8 +198,8 @@ const Pembayaran2 = () => {
                                                             {eWallet.map((item, index) => (
                                                                 <div key={index}
                                                                     className={`grid-item border border-1 rounded-3 p-2 mb-3 w-100 cursor-pointer ${selectedIndex === index ? 'border-primer border-3' : ''}`}
-                                                                    onClick={() => handleItemClick(item, index)}>
-                                                                    <Row className="w-100">
+                                                                    onClick={() => handleItemClick(item, index)} style={{height: '100px'}}>
+                                                                    <Row className="w-100 h-100">
                                                                         <Col xs='4' sm="3" lg="3" className="d-flex align-items-center">
                                                                             <img src={image[index]} alt="" width={100} />
                                                                         </Col>
@@ -264,7 +266,6 @@ const Pembayaran2 = () => {
                             </section>
                         </div>
                         <Button className="bg-primer rounded-3 w-100 mb-5 border-0" onClick={handleSubmit}>Daftar Sekarang</Button>
-
                     </div>
                 </div>
             </div>

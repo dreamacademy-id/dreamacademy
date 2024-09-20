@@ -74,6 +74,7 @@ export default function Selesai() {
     const [dataUserAnswer, setDataUserAnswer] = useState([]);
     const [selectedQuestion, setSelectedQuestion] = useState([]); // State for tracking selected questions
 
+    console.log('channa', selectedQuestion)
     useEffect(() => {
         if (allQuestions.length > 0) {
             // Automatically set the first question as selected when allQuestions is populated

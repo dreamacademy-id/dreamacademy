@@ -317,21 +317,7 @@ const AllTryOut = () => {
                         </Col>
                     </Row>
                 </section> */}
-                    <Button className="d-flex align-items-center px-3 border-0 bg-primy rounded-5 position-fixed cursor-pointer" onClick={handleDetail} style={{ top: '90%', left: '90%', zIndex: '9999' }}>
-                        <svg className="me-2" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect y="18" width="18" height="18" rx="9" transform="rotate(-90 0 18)" fill="white" />
-                            <rect x="10" y="8" width="7" height="2" rx="1" transform="rotate(90 10 8)" fill="#27B262" />
-                            <rect x="10" y="4" width="2" height="2" rx="1" transform="rotate(90 10 4)" fill="#27B262" />
-                        </svg>
-                        Infor Paket
-
-                    </Button>
                 </div>
-                {detail && (
-                    <div className="detail position-fixed bg-white" style={{ top: 0, left: 0, width: '100vw', height: '100vh', zIndex: '99999' }}>
-                        <h2>Halaman detail</h2>
-                    </div>
-                )}
             </div>
         </ProtectedRoute>
     );

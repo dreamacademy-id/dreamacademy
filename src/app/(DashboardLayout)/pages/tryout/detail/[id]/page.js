@@ -136,7 +136,7 @@ const About = () => {
                         <Row className="h-100">
                             <Col sm="12" lg="3">
                                 <div className="border-primer d-flex justify-content-center align-items-center rounded-3 w-100 h-100">
-                                    <img src={detailData.image} alt="Example Image" height={300} width={300} />
+                                    <img src={detailData.image} className="rounded-3 h-100 w-100" style={{ objectFit: 'cover' }} />
                                 </div>
                             </Col>
                             <Col sm="12" lg="9" className="mt-3 mt-lg-0">
