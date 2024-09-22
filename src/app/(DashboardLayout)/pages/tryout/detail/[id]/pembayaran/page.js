@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from "react";
-import { Row, Col, FormGroup, Label, Input, FormText, Form, Button, Card } from "reactstrap";
+import { Row, Col, FormGroup, Label, Input, FormText, Form, Button, Card, Alert } from "reactstrap";
 import { getDocs, getDoc, collection, updateDoc, deleteDoc, doc, addDoc, setDoc, query, where } from "firebase/firestore";
 import Link from "next/link";
 import { db } from "../../../../../../../../public/firebaseConfig";
@@ -37,6 +37,7 @@ const Pembayaran2 = () => {
     const [selectedIndex, setSelectedIndex] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItem2, setSelectedItem2] = useState(null);
+    const [showPopup, setShowPopup] = useState(false); // State untuk mengontrol popup
 
     const handleItemClick = (item, index) => {
         setSelectedItem(item);
@@ -88,7 +89,8 @@ const Pembayaran2 = () => {
         e.preventDefault();
         if (detailData.claimedUid.includes(currentUser.uid)) {
             //bagaimana buat popup disini
-            window.alert("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
+            setShowPopup(true);
+            // window.alert("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
             console.log("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
         } else {
             try {
@@ -198,7 +200,7 @@ const Pembayaran2 = () => {
                                                             {eWallet.map((item, index) => (
                                                                 <div key={index}
                                                                     className={`grid-item border border-1 rounded-3 p-2 mb-3 w-100 cursor-pointer ${selectedIndex === index ? 'border-primer border-3' : ''}`}
-                                                                    onClick={() => handleItemClick(item, index)} style={{height: '100px'}}>
+                                                                    onClick={() => handleItemClick(item, index)} style={{ height: '100px' }}>
                                                                     <Row className="w-100 h-100">
                                                                         <Col xs='4' sm="3" lg="3" className="d-flex align-items-center">
                                                                             <img src={image[index]} alt="" width={100} />
@@ -269,6 +271,19 @@ const Pembayaran2 = () => {
                     </div>
                 </div>
             </div>
+            {showPopup && (
+                <div className="w-100 d-flex justify-content-center align-items-center position-fixed" style={{ height: '100vh', zIndex: '99', top: '0', left: '0', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="py-4 px-3 rounded-2">
+                        <Alert color="primary">
+                            Tryout Sudah Dibeli, Silakan cek di{' '}
+                            <Link href='/pages/tryout#saya' className="text-primary alert-link"
+                                rel="noreferrer">
+                                Tryout Saya
+                            </Link>
+                        </Alert>
+                    </div>
+                </div>
+            )}
         </ProtectedRoute>
     );
 };

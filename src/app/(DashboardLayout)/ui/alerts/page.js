@@ -58,18 +58,7 @@ const Alerts = () => {
         </CardTitle>
         <CardBody className="">
           <div>
-            <Alert color="primary">
-              This is a primary alert with{' '}
-              <a
-                className="alert-link"
-                href="https://example.com"
-                rel="noreferrer"
-                target="_blank"
-              >
-                an example link
-              </a>
-              . Give it a click if you like.
-            </Alert>
+          This is a primary alert with
             <Alert color="secondary">
               This is a primary alert with{' '}
               <a

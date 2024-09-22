@@ -42,6 +42,7 @@ export default function Semuatryout() {
     const [type, setType] = useState(null);
     const [userAnswers, setUserAnswers] = useState([]);
     const [filteredTryOuts, setFilteredTryOuts] = useState([]);
+    const [filteredTryOutAll, setFilteredTryOutAll] = useState([]);
     const { currentUser } = useAuth(); // Get the current logged-in user
 
 
@@ -54,6 +55,8 @@ export default function Semuatryout() {
             // setDataTryOut(tryoutData);
             setUserAnswers(userAnswerData);
 
+            const filter = tryoutData.filter((item) => item.public === true);
+
             const matchedTryOuts = tryoutData.filter(tryout =>
                 userAnswerData.some(userAnswer =>
                     userAnswer.tryoutId === tryout.id && userAnswer.userId === currentUser.uid
@@ -61,7 +64,7 @@ export default function Semuatryout() {
             );
 
             // Filter the tryouts that don't match any tryoutId or userId
-            const unmatchedTryOuts = tryoutData.filter(tryout =>
+            const unmatchedTryOuts = filter.filter(tryout =>
                 !userAnswerData.some(userAnswer =>
                     userAnswer.tryoutId === tryout.id && userAnswer.userId === currentUser.uid
                 )
@@ -69,6 +72,7 @@ export default function Semuatryout() {
 
             setFilteredTryOuts(matchedTryOuts); // Tryouts that match both tryoutId and userId
             setDataTryOut(unmatchedTryOuts); // Tryouts that don't match
+            setFilteredTryOutAll(filter);
         }
         fetchData();
     }, []);
@@ -115,7 +119,7 @@ export default function Semuatryout() {
                 <section className="mt-5">
                     {type === 'toSelesai' ? (
                         <Row>
-                        {filteredTryOuts.map((item, index) => (
+                            {filteredTryOuts.map((item, index) => (
                                 <Col sm="12" lg="6" key={index} className="mb-3">
                                     <Card className="w-100 h-100 p-3 cursor-pointer">
                                         <Row className="h-100">
@@ -146,7 +150,7 @@ export default function Semuatryout() {
                         </Row>
                     ) : type === 'toTersedia' ? (
                         <Row>
-                            {dataTryOut.map((item, index) => (
+                            {filteredTryOutAll.map((item, index) => (
                                 <Col sm="12" lg="6" className="mb-3" key={index}>
                                     <Link href={`/pages/tryout/detail/${item.id}`}>
                                         <Card className="w-100 h-100 p-3 cursor-pointer">
@@ -177,7 +181,7 @@ export default function Semuatryout() {
                         </Row>
                     ) : (
                         <Row>
-                        {dataTryOut.map((item, index) => (
+                            {dataTryOut.map((item, index) => (
                                 <Col sm="12" lg="6" key={index} className="mb-3">
                                     <Card className="w-100 h-100 p-3 cursor-pointer">
                                         <Row className="h-100">

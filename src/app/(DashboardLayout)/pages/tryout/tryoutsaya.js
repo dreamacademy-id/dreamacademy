@@ -56,6 +56,10 @@ const TryOutSaya = () => {
             // setDataTryOut(tryoutData);
             setUserAnswers(userAnswerData);
 
+            const filteredData = tryoutData.filter(tryout =>
+                tryout.claimedUid && tryout.claimedUid.includes(currentUser.uid)
+            );
+
             const matchedTryOuts = tryoutData.filter(tryout =>
                 userAnswerData.some(userAnswer =>
                     userAnswer.tryoutId === tryout.id && userAnswer.userId === currentUser.uid
@@ -63,7 +67,7 @@ const TryOutSaya = () => {
             );
 
             // Filter the tryouts that don't match any tryoutId or userId
-            const unmatchedTryOuts = tryoutData.filter(tryout =>
+            const unmatchedTryOuts = filteredData.filter(tryout =>
                 !userAnswerData.some(userAnswer =>
                     userAnswer.tryoutId === tryout.id && userAnswer.userId === currentUser.uid
                 )
@@ -111,30 +115,6 @@ const TryOutSaya = () => {
                             </Col>
                         </Row>
                         <Row>
-                            <Col sm="12" lg="6" className="mb-3">
-                                <Card className="w-100 h-100 p-3 cursor-pointer">
-                                    <Row className="h-100">
-                                        <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
-                                            <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
-                                                <h3 className="text-white fw-bolder">SNBT</h3>
-                                                <h1 className="fw-bolder m-0">4</h1>
-                                            </div>
-                                        </Col>
-                                        <Col xs='9' sm="9" lg="9" className="h-100">
-                                            <div className="h-100 d-flex flex-column justify-content-between">
-                                                <span>
-                                                    <h5>Try Out UTBK 2024 #4 - SNBT</h5>
-                                                    <p>Tes Potensi Skolastik (TPS) dan Tes Literasi</p>
-                                                </span>
-                                                <span className="d-flex justify-content-between">
-                                                    <b>Gratis dan Berbayar</b>
-                                                    <b className="color-primer">Mulai Mengerjakan</b>
-                                                </span>
-                                            </div>
-                                        </Col>
-                                    </Row>
-                                </Card>
-                            </Col>
                             {dataTryOut.slice(0, 4).map((item, index) => (
                                 <Col sm="12" lg="6" key={index} className="mb-3">
                                     <Card className="w-100 h-100 p-3 cursor-pointer">

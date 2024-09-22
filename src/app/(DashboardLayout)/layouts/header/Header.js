@@ -51,7 +51,7 @@ const Header = ({ showMobmenu, children }) => {
     <Navbar color="white" dark expand="md" style={{ height: '10vh', zIndex: '9999' }}>
       <div className="d-flex align-items-center">
         <NavbarBrand href="/" className="d-lg-none">
-          <Image src={LogoWhite} alt="logo" />
+          <Image src={LogoWhite} alt="dreamacademy" />
         </NavbarBrand>
         {/* <Button color="primary" className="d-lg-none" onClick={showMobmenu}>
           <i className="bi bi-list"></i>

@@ -34,7 +34,7 @@ export default function Profile() {
     const router = useRouter();
     const [formState, setFormState] = useState({
         gambar: "", nama: "", username: "", email: "", asal_sekolah: "", kabupaten: "", universitas: "", universitas2: "", universitas3: "", universitas4: "",
-         jurusan1: "", jurusan2: "",  jurusan1_2: "", jurusan2_2: "",  jurusan1_3: "", jurusan2_3: "",  jurusan1_4: "", jurusan2_4: "", phone: "", motivasi: ""
+        jurusan1: "", jurusan2: "", jurusan1_2: "", jurusan2_2: "", jurusan1_3: "", jurusan2_3: "", jurusan1_4: "", jurusan2_4: "", phone: "", motivasi: ""
     });
 
     const [userId, setUserId] = useState(null);
@@ -203,17 +203,9 @@ export default function Profile() {
                                                         </Input>
                                                     </FormGroup>
                                                     <FormGroup>
-                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan</Label>
                                                         <Input id="jurusan1" name="jurusan1" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1} onChange={handleInputChange}>
                                                             <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
-                                                            <option value="Teknik Informatika">Teknik Informatika</option>
-                                                            <option value="Sistem Informasi">Sistem Informasi</option>
-                                                        </Input>
-                                                    </FormGroup>
-                                                    <FormGroup>
-                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
-                                                        <Input id="jurusan2" name="jurusan2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2} onChange={handleInputChange}>
-                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
                                                             <option value="Teknik Informatika">Teknik Informatika</option>
                                                             <option value="Sistem Informasi">Sistem Informasi</option>
                                                         </Input>
@@ -230,17 +222,9 @@ export default function Profile() {
                                                         </Input>
                                                     </FormGroup>
                                                     <FormGroup>
-                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan</Label>
                                                         <Input id="jurusan1_2" name="jurusan1_2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1_2} onChange={handleInputChange}>
                                                             <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
-                                                            <option value="Teknik Informatika">Teknik Informatika</option>
-                                                            <option value="Sistem Informasi">Sistem Informasi</option>
-                                                        </Input>
-                                                    </FormGroup>
-                                                    <FormGroup>
-                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
-                                                        <Input id="jurusan2_2" name="jurusan2_2" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2_2} onChange={handleInputChange}>
-                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
                                                             <option value="Teknik Informatika">Teknik Informatika</option>
                                                             <option value="Sistem Informasi">Sistem Informasi</option>
                                                         </Input>
@@ -258,17 +242,9 @@ export default function Profile() {
                                                         </Input>
                                                     </FormGroup>
                                                     <FormGroup>
-                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan</Label>
                                                         <Input id="jurusan1_3" name="jurusan1_3" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1_3} onChange={handleInputChange}>
                                                             <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
-                                                            <option value="Teknik Informatika">Teknik Informatika</option>
-                                                            <option value="Sistem Informasi">Sistem Informasi</option>
-                                                        </Input>
-                                                    </FormGroup>
-                                                    <FormGroup>
-                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
-                                                        <Input id="jurusan2_3" name="jurusan2_3" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2_3} onChange={handleInputChange}>
-                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
                                                             <option value="Teknik Informatika">Teknik Informatika</option>
                                                             <option value="Sistem Informasi">Sistem Informasi</option>
                                                         </Input>
@@ -285,17 +261,9 @@ export default function Profile() {
                                                         </Input>
                                                     </FormGroup>
                                                     <FormGroup>
-                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan 1</Label>
+                                                        <Label className="fw-light" for="jurusan1">Pilihan Jurusan</Label>
                                                         <Input id="jurusan1_4" name="jurusan1_4" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan1_4} onChange={handleInputChange}>
                                                             <option value='' disabled selected>-- Pilih Jurusan 1 --</option>
-                                                            <option value="Teknik Informatika">Teknik Informatika</option>
-                                                            <option value="Sistem Informasi">Sistem Informasi</option>
-                                                        </Input>
-                                                    </FormGroup>
-                                                    <FormGroup>
-                                                        <Label className="fw-light" for="jurusan2">Pilihan Jurusan 2</Label>
-                                                        <Input id="jurusan2_4" name="jurusan2_4" type="select" className="bg-transparent rounded-3 border border-1 border-black" value={formState.jurusan2_4} onChange={handleInputChange}>
-                                                            <option value='' disabled>-- Pilih Jurusan 2 --</option>
                                                             <option value="Teknik Informatika">Teknik Informatika</option>
                                                             <option value="Sistem Informasi">Sistem Informasi</option>
                                                         </Input>

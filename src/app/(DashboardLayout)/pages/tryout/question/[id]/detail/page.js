@@ -135,7 +135,7 @@ export default function DetailSoal() {
         datas = element.listQuestions.length;
     });
 
-    console.log('ini', filteredDataTryOut);
+    console.log('ini', filteredDataTryOutLiterasi);
 
     useEffect(() => {
         async function fetchData() {
@@ -290,7 +290,6 @@ export default function DetailSoal() {
         return () => clearInterval(timerInterval);
     }, [nextSubTest]);
 
-
     useEffect(() => {
         if (id) {
             const fetchDetailData = async () => {
@@ -299,6 +298,22 @@ export default function DetailSoal() {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setDetailData(data);
+
+                    // Ambil tanggal start dan end dari data
+                    const startDate = data.started ? new Date(data.started) : null;
+                    const endDate = data.ended ? new Date(data.ended) : null;
+
+                    const currentDate = new Date();
+
+                    console.log('tanggal', startDate)
+
+                    // Cek apakah tanggal sekarang berada di dalam rentang
+                    if (startDate && endDate && (currentDate < startDate || currentDate > endDate)) {
+                        console.log("Data tryout tidak bisa diakses karena berada di luar rentang waktu.");
+                        setFilteredDataTryOut([]); // Kosongkan data jika di luar rentang tanggal
+                        setFilteredDataTryOutLiterasi([]); // Kosongkan data literasi juga
+                        return; // Hentikan eksekusi jika di luar rentang tanggal
+                    }
 
                     const tpsListSubtests = data.listTest
                         .filter(item => item.nameTest === "TPS")
@@ -315,6 +330,9 @@ export default function DetailSoal() {
                     let filteredData = dataTryOut.filter(dataItem =>
                         idQuestionsList.includes(dataItem.id)
                     );
+                    let filteredDataLiterasi = dataTryOut.filter(dataItem =>
+                        idQuestionsListLiterasi.includes(dataItem.id)
+                    );
 
                     // Sort filteredData sesuai dengan urutan idQuestions di tpsListSubtests
                     filteredData = filteredData.sort((a, b) => {
@@ -323,10 +341,17 @@ export default function DetailSoal() {
                         return indexA - indexB; // Sort based on the order in tpsListSubtests
                     });
 
+                    filteredDataLiterasi = filteredDataLiterasi.sort((a, b) => {
+                        const indexA = idQuestionsListLiterasi.indexOf(a.id);
+                        const indexB = idQuestionsListLiterasi.indexOf(b.id);
+                        return indexA - indexB; // Sort based on the order in tpsListSubtests
+                    });
+
                     console.log('malu:', tpsListSubtests);
                     console.log('maluu:', filteredData);
 
                     setFilteredDataTryOut(filteredData);
+                    setFilteredDataTryOutLiterasi(filteredDataLiterasi);
                 } else {
                     console.log('No such document!');
                 }

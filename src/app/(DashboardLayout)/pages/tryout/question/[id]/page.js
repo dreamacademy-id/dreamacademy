@@ -35,7 +35,7 @@ export default function Soal() {
     const [detailData, setDetailData] = useState(null);
 
     const [type, setType] = useState(null);
-    
+
 
     //TPS
     const tps = detailData?.listTest?.filter(item => item.nameTest === "TPS") ?? [];
@@ -46,18 +46,6 @@ export default function Soal() {
     let listSubtests = literiasi.flatMap(element => element.listSubtest);
     console.log('niki', listSubtests);
 
-
-    // let listSubtests = [];
-    // let listSubtests2 = [];
-
-    // literiasi.forEach(element => {
-    //     listSubtests = element.listSubtest;
-    // });
-
-    // listSubtests.forEach(element => {
-    //     listSubtests2 = element;
-    // });
-
     const router = useRouter();
 
     useEffect(() => {
@@ -66,7 +54,9 @@ export default function Soal() {
                 const docRef = doc(db, 'tryout_v1', id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setDetailData(docSnap.data());
+                    const data = docSnap.data();
+                    setDetailData(data);
+
                 } else {
                     console.log('No such document!');
                 }
@@ -88,6 +78,13 @@ export default function Soal() {
 
     console.log('ini halaman', detailData);
 
+    const startDate = detailData.started ? new Date(detailData.started) : null;
+    const endDate = detailData.ended ? new Date(detailData.ended) : null;
+
+    const currentDate = new Date();
+
+    console.log('tanggal', startDate);
+
     let idsoal;
     return (
         <ProtectedRoute>
@@ -105,8 +102,8 @@ export default function Soal() {
                     <div className="bg-graylg py-3 px-5 mb-4 rounded-3">
                         <Row>
                             <Col sm="3" lg="3">
-                                <div className="bg-primy rounded-3" style={{height: '170px'}}>
-                                    <img src={detailData.image} style={{objectFit: 'cover', width: '100%', height: '100%'}} />
+                                <div className="bg-primy rounded-3" style={{ height: '170px' }}>
+                                    <img src={detailData.image} style={{ objectFit: 'cover', width: '100%', height: '100%' }} />
                                 </div>
                             </Col>
                             <Col sm="9" lg="9">
@@ -120,14 +117,16 @@ export default function Soal() {
                                     </p>
                                 </span>
                                 <span className='d-flex flex-column flex-lg-row align-items-center'>
-                                    {!type ? (
+                                    {!type && (startDate && endDate && (currentDate < startDate || currentDate > endDate)) ? (
+                                        <Button className="bg-danger rounded-5 px-4 border-0 me-lg-4">TryOut Telah Berakhir</Button>
+                                    ) : !type ? (
                                         <Link href={`/pages/tryout/question/${id}/detail`}>
                                             <Button className="bg-primy rounded-5 px-4 border-0 me-lg-4">Mulai Mengerjakan ≫</Button>
                                         </Link>
-                                    ) : (
-                                    <Link href={`/pages/tryout/question/${id}/detail/selesai`} className="text-decoration-underline">
-                                        Riwayat Pengerjaan
-                                    </Link>
+                                    ) : type &&  (
+                                        <Link href={`/pages/tryout/question/${id}/detail/selesai`} className="text-decoration-underline">
+                                            Riwayat Pengerjaan
+                                        </Link>
                                     )}
                                 </span>
                             </Col>
@@ -155,7 +154,6 @@ export default function Soal() {
                                             <rect width="45" height="45" rx="22.5" fill="#27B262" />
                                             <path d="M19.6667 12.2857V10H26.3333V12.2857H19.6667ZM21.8889 24.8571H24.1111V18H21.8889V24.8571ZM23 34C21.6296 34 20.3378 33.7288 19.1244 33.1863C17.9111 32.6438 16.8511 31.9055 15.9444 30.9714C15.0378 30.0373 14.3204 28.9467 13.7922 27.6994C13.2641 26.4522 13 25.1238 13 23.7143C13 22.3048 13.2641 20.976 13.7922 19.728C14.3204 18.48 15.0378 17.3897 15.9444 16.4571C16.8511 15.5246 17.9115 14.7867 19.1256 14.2434C20.3396 13.7002 21.6311 13.4286 23 13.4286C24.1481 13.4286 25.25 13.619 26.3056 14C27.3611 14.381 28.3519 14.9333 29.2778 15.6571L30.8333 14.0571L32.3889 15.6571L30.8333 17.2571C31.537 18.2095 32.0741 19.2286 32.4444 20.3143C32.8148 21.4 33 22.5333 33 23.7143C33 25.1238 32.7359 26.4526 32.2078 27.7006C31.6796 28.9486 30.9622 30.0389 30.0556 30.9714C29.1489 31.904 28.0885 32.6423 26.8744 33.1863C25.6604 33.7303 24.3689 34.0015 23 34Z" fill="white" />
                                         </svg>
-
                                         Total Waktu
                                     </span>
                                     <b>{detailData.totalTime} Menit</b>
