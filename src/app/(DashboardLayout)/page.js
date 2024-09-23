@@ -28,9 +28,14 @@ export default function Home() {
 
   return (
     <>
-        <Header />
-        <HomePage />
-        <BottomNav />
+    
+      <Head>
+        <title>Home - Dream Academy</title>
+        <meta name="description" content="Selamat datang di Dream Academy, web tryout pertama di Indonesia Timur." />
+      </Head>
+      <Header />
+      <HomePage />
+      <BottomNav />
     </>
   );
 }

@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Image } from "react-feather";
 import ProtectedRoute from "../../../ProtectedRoute";
 import { useAuth } from "../../../../../../../../public/AuthContext";
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 async function updateData_TryOut(id, updatedData) {
     try {
@@ -37,7 +38,15 @@ const Pembayaran2 = () => {
     const [selectedIndex, setSelectedIndex] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [selectedItem2, setSelectedItem2] = useState(null);
-    const [showPopup, setShowPopup] = useState(false); // State untuk mengontrol popup
+    const [showQr, setShowQr] = useState(false);
+    const [continueShowQr, setContinueShowQr] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+    const storage = getStorage(); // Inisialisasi Firebase Storage
+    const [nama, setNama] = useState('');
+    const [jurusan, setJurusan] = useState('');
+    const [metodePembayaran, setMetodePembayaran] = useState('');
+    const [buktiFollow, setBuktiFollow] = useState(null); // Untuk file upload
+    const [buktiBayar, setBuktiBayar] = useState(null); // Untuk file upload
 
     const handleItemClick = (item, index) => {
         setSelectedItem(item);
@@ -47,6 +56,17 @@ const Pembayaran2 = () => {
     const handleItems = () => {
         setSelectedItem2(selectedItem);
         setMetode(!metode);
+    }
+
+    const handleShowQr = () => {
+        selectedItem2 == null ? alert('Pilih metode pembayaran terlebih dahulu') :
+        setShowQr(true);
+        setContinueShowQr(false);
+    }
+
+    const handleContinueShowQr = () => {
+        setContinueShowQr(true);
+        setShowQr(false);
     }
 
     // console.log('yg terklik', selectedItem);
@@ -87,24 +107,57 @@ const Pembayaran2 = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (detailData.claimedUid.includes(currentUser.uid)) {
-            //bagaimana buat popup disini
+
+        if (detailData.claimedUid.some(claim => claim.Uid === currentUser.uid)) {
+            // Tampilkan popup jika user sudah mendaftar sebelumnya
             setShowPopup(true);
-            // window.alert("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
-            console.log("Tryout Sudah Dibeli, Silahkan cek di Tryout Saya");
-        } else {
-            try {
-                const newUID = [...detailData.claimedUid, currentUser.uid];
-                const added = await updateData_TryOut(id, { claimedUid: newUID });
-                added ? console.error("Data berhasil di upload") : console.error("Data gagal di upload");
-                // console.log('ini array uid ' + newUID);
-                // console.log('ini id truout ' + id);
-                router.push(`/pages/tryout/detail/${id}/pembayaran/done`);
-            } catch (error) {
-                console.error("gagal upload image:", error);
-            }
+            return;
         }
 
+        try {
+            let buktiFollowUrl = '';
+            let buktiBayarUrl = '';
+
+            // Proses upload file ke Firebase Storage jika ada file yang diupload
+            if (buktiFollow) {
+                const storageRef = ref(storage, `buktiFollow/${currentUser.uid}/${buktiFollow.name}`);
+                const snapshot = await uploadBytes(storageRef, buktiFollow);
+                buktiFollowUrl = await getDownloadURL(snapshot.ref); // Dapatkan URL file yang diupload
+            }
+            
+            if (buktiBayar) {
+                const storageRef = ref(storage, `buktiBayar/${currentUser.uid}/${buktiBayar.name}`);
+                const snapshot = await uploadBytes(storageRef, buktiBayar);
+                buktiBayarUrl = await getDownloadURL(snapshot.ref); // Dapatkan URL file yang diupload
+            }
+
+            // Buat objek baru untuk user yang login dan input data
+            const newUser = {
+                Uid: currentUser.uid,
+                nama: nama,
+                jurusan: jurusan,
+                metodePembayaran: type === 'toGratis' ? 'Follow' : type === 'e_wallet' ? 'E-Wallet' : 'Coin',
+                buktiFollow: buktiFollowUrl || '',
+                e_wallet: selectedItem,
+                // jumlah: jumlah,
+                statusPemabyaran: true,
+                buktiBayar: buktiBayarUrl || '',
+            };
+
+            // Tambahkan user baru ke dalam claimedUid array
+            const newClaimedUid = [...detailData.claimedUid, newUser];
+
+            // Update Firestore dengan data baru
+            const added = await updateData_TryOut(id, { claimedUid: newClaimedUid });
+            if (added) {
+                console.log("Data berhasil disimpan");
+                router.push(`/pages/tryout/detail/${id}/pembayaran/done`);
+            } else {
+                console.error("Data gagal disimpan");
+            }
+        } catch (error) {
+            console.error("Gagal mengupload data:", error);
+        }
     };
 
     return (
@@ -156,6 +209,8 @@ const Pembayaran2 = () => {
                                                     name="nama"
                                                     placeholder="Nama"
                                                     type="text"
+                                                    value={nama}
+                                                    onChange={(e) => setNama(e.target.value)} // Update state nama
                                                 />
                                             </FormGroup>
                                             <FormGroup className="border border-1 border-black rounded-3">
@@ -165,15 +220,20 @@ const Pembayaran2 = () => {
                                                     name="jurusan"
                                                     placeholder="Jurusan"
                                                     type="text"
+                                                    value={jurusan}
+                                                    onChange={(e) => setJurusan(e.target.value)} // Update state jurusan
                                                 />
                                             </FormGroup>
                                             <div className="border border-1 border-black rounded-3 d-flex justify-content-center align-items-center py-4">
                                                 <FormGroup className="w-50 text-center">
                                                     <Label for="exampleFile">Upload Bukti Follow</Label>
-                                                    <Input id="exampleFile" name="file" type="file" />
-                                                    <FormText>
-                                                        Format file jpg, jpeg, png
-                                                    </FormText>
+                                                    <Input
+                                                        id="exampleFile"
+                                                        name="file"
+                                                        type="file"
+                                                        onChange={(e) => setBuktiFollow(e.target.files[0])} // Update state buktiFollow
+                                                    />
+                                                    <FormText>Format file jpg, jpeg, png</FormText>
                                                 </FormGroup>
                                             </div>
                                         </Form>
@@ -267,10 +327,63 @@ const Pembayaran2 = () => {
                                 </span>
                             </section>
                         </div>
-                        <Button className="bg-primer rounded-3 w-100 mb-5 border-0" onClick={handleSubmit}>Daftar Sekarang</Button>
+                        <Button className="bg-primer rounded-3 w-100 mb-5 border-0" onClick={type === 'e_wallet' ? handleShowQr : handleSubmit}>Daftar Sekarang</Button>
                     </div>
                 </div>
             </div>
+            {type === 'e_wallet' && showQr ? (
+                <div className="w-100 d-flex justify-content-center align-items-center position-fixed" style={{ height: '90vh', zIndex: '99', bottom: '0', left: '0', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="p-5 bg-white rounded-3">
+                        <section className="w-100 py-2 text-center bg-white">
+                            <h3>{selectedItem}</h3>
+                        </section>
+                        <section className="d-flex flex-column align-items-center">
+                            <img src="https://media.istockphoto.com/id/1347277582/id/vektor/contoh-kode-qr-untuk-pemindaian-smartphone-dengan-latar-belakang-putih.jpg?s=612x612&w=0&k=20&c=nhbs94A-38H7hbgN6GMd9PHWWrPuFlldf9V4gxa3K4M=" alt="" style={{ width: '40%' }} />
+                            <h3>Rp 230.000</h3>
+                        </section>
+                        <section className="w-100 d-flex justify-content-center">
+                            <div>
+                                <p className="m-0 text-center">Atas Nama</p>
+                                <h5>Aegon Targaryen</h5>
+                            </div>
+                        </section>
+                        <section className="w-100 d-flex justify-content-center pt-4">
+                            <Button className="bg-primer border-0 rounded-5 py-2 px-4" onClick={handleContinueShowQr}>Upload Bukti Pembayaran</Button>
+                        </section>
+                    </div>
+                </div>
+            ) : continueShowQr && (
+                <div className="w-100 d-flex justify-content-center align-items-center position-fixed" style={{ height: '90vh', zIndex: '99', bottom: '0', left: '0', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <div className="p-5 bg-white rounded-3 h-75 w-50 d-flex flex-column justify-content-between">
+                        <section className="w-100 d-flex py-3 text-center bg-white">
+                            <svg className="cursor-pointer" onClick={handleShowQr} width="35" height="35" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M14.9982 24.9167L25.7316 35.65L23.0003 38.3333L7.66699 23L23.0003 7.66666L25.7316 10.35L14.9982 21.0833H38.3337V24.9167H14.9982Z" fill="black" />
+                            </svg>
+                            <h5 className="m-auto">Upload Bukti Pembayaran</h5>
+                        </section>
+                        <section className="d-flex flex-column align-items-center text-center justify-content-center">
+                            <div className="border border-1 border-secondary rounded-3 d-flex align-items-center p-4 color-white">
+                                <Form>
+                                    <FormGroup className="w-50 text-center">
+                                        <Label for="exampleFile">Upload Bukti Pembayaran</Label>
+                                        <Input
+                                            id="exampleFile"
+                                            name="file"
+                                            type="file"
+                                            onChange={(e) => setBuktiBayar(e.target.files[0])} // Update state buktiFollow
+                                        />
+                                        <FormText>Format file jpg, jpeg, png</FormText>
+                                    </FormGroup>
+                                </Form>
+                            </div>
+                            <p>Upload file berupa jpg, jpeg, atau png.</p>
+                        </section>
+                        <section className="w-100 d-flex justify-content-center pt-4">
+                            <Button className="bg-primer border-0 rounded-5 py-2 px-4" onClick={handleSubmit}>Upload Bukti Pembayaran</Button>
+                        </section>
+                    </div>
+                </div>
+            )}
             {showPopup && (
                 <div className="w-100 d-flex justify-content-center align-items-center position-fixed" style={{ height: '100vh', zIndex: '99', top: '0', left: '0', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
                     <div className="py-4 px-3 rounded-2">

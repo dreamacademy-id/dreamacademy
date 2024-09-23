@@ -9,6 +9,7 @@ import {
     Card,
     CardSubtitle,
     Input,
+    Alert,
 } from "reactstrap";
 import Image from "next/image";
 import logo from "../../../../../public/images/logos/aboutLogo.svg"
@@ -46,7 +47,6 @@ const TryOutSaya = () => {
     const [filteredTryOuts, setFilteredTryOuts] = useState([]);
     const { currentUser } = useAuth(); // Get the current logged-in user
 
-
     useEffect(() => {
         async function fetchData() {
             // Fetch tryout_v1 and userAnswer data
@@ -57,8 +57,10 @@ const TryOutSaya = () => {
             setUserAnswers(userAnswerData);
 
             const filteredData = tryoutData.filter(tryout =>
-                tryout.claimedUid && tryout.claimedUid.includes(currentUser.uid)
-            );
+                tryout.claimedUid && tryout.claimedUid.some(claim => 
+                    claim.Uid === currentUser.uid && claim.statusPemabyaran === true
+                )
+            );            
 
             const matchedTryOuts = tryoutData.filter(tryout =>
                 userAnswerData.some(userAnswer =>
@@ -79,7 +81,7 @@ const TryOutSaya = () => {
         fetchData();
     }, []);
 
-    console.log('item', filteredTryOuts);
+    console.log('item', currentUser.uid);
 
 
     // useEffect(() => {
@@ -95,102 +97,107 @@ const TryOutSaya = () => {
     })
     return (
         <ProtectedRoute>
-            <div className="tryOutSaya" style={{ marginTop: window.innerWidth < 576 ? 0 : '18vh' }}>
-                <section className="section-green-bg pb-2 pt-3 w-100" style={{ padding: '0 7% 20px', marginTop: window.innerWidth < 576 ? '18vh' : 0 }}>
-                    <h5 className="fw-bolder">Grafik Nilai Try Out UTBK</h5>
-                    <p className="text-white">Lihat progresmu disini</p>
-                    <SalesChart />
-                </section>
-                <div className="position-relative tryOutSaya" style={{ padding: '0 7% 20px' }}>
-                    <section className="mt-5">
-                        <Row className="d-flex align-items-center justify-content-between mb-2">
-                            <Col sm='12' lg='6'>
-                                <h5 className="m-0">Try Out Belum Selesai</h5>
-                                <p>Lihat somua TO kamu milikl korjakan TO nya sokarang!</p>
-                            </Col>
-                            <Col sm='12' lg='6' className='text-lg-end'>
-                                <Link href='/pages/tryout/semua-tryout'>
-                                    <Button className="rounded-5 border-primer bg-transparent color-primer fw-bolder border-2 px-4">Lihat Semua ≫</Button>
-                                </Link>
-                            </Col>
-                        </Row>
-                        <Row>
-                            {dataTryOut.slice(0, 4).map((item, index) => (
-                                <Col sm="12" lg="6" key={index} className="mb-3">
-                                    <Card className="w-100 h-100 p-3 cursor-pointer">
-                                        <Row className="h-100">
-                                            <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
-                                                <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
-                                                    <h3 className="text-white fw-bolder">SNBT</h3>
-                                                    <h1 className="fw-bolder m-0">6</h1>
-                                                </div>
-                                            </Col>
-                                            <Col xs='9' sm="9" lg="9" className="h-100">
-                                                <Link href={`/pages/tryout/question/${item.id}`}>
-                                                    <div className="h-100 d-flex flex-column justify-content-between">
-                                                        <span>
-                                                            <h5>{item.toName}</h5>
-                                                            <p>Tes Potensi Skolastik (TPS) dan Tes Literasii</p>
-                                                        </span>
-                                                        <span className="d-flex justify-content-between">
-                                                            <b>Gratis dan Berbayar</b>
-                                                            <b className="color-primer">Mulai Mengerjakan</b>
-                                                        </span>
-                                                    </div>
-                                                </Link>
-                                            </Col>
-                                        </Row>
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
+            {filteredTryOuts == 0 && dataTryOut == 0 ? (
+                <div className="py-3 bg-light bundling w-100 d-flex justify-content-center align-items-center position-relative" style={{ padding: '0 7% 20px', height: '80vh', zIndex: '99', marginTop: '18vh', backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+                    <Alert color="danger">Anda belum memiliki TryOut Apapun!</Alert>
+                </div>
+            ) : (
+                <div className="tryOutSaya" style={{ marginTop: window.innerWidth < 576 ? 0 : '18vh' }}>
+                    <section className="section-green-bg pb-2 pt-3 w-100" style={{ padding: '0 7% 20px', marginTop: window.innerWidth < 576 ? '18vh' : 0 }}>
+                        <h5 className="fw-bolder">Grafik Nilai Try Out UTBK</h5>
+                        <p className="text-white">Lihat progresmu disini</p>
+                        <SalesChart />
                     </section>
-                    <section className="mt-5">
-                        {filteredTryOuts == 0 ? (
-                            <div></div>
-                        ) : (
+                    <div className="position-relative tryOutSaya" style={{ padding: '0 7% 20px' }}>
+                        <section className="mt-5">
                             <Row className="d-flex align-items-center justify-content-between mb-2">
                                 <Col sm='12' lg='6'>
-                                    <h5 className="m-0">Try Out Selesai</h5>
-                                    <p>Lihat semua Try Out yang telah kamu ikuti</p>
+                                    <h5 className="m-0">Try Out Belum Selesai</h5>
+                                    <p>Lihat somua TO kamu milikl korjakan TO nya sokarang!</p>
                                 </Col>
                                 <Col sm='12' lg='6' className='text-lg-end'>
-                                    <Link href='/pages/tryout/semua-tryout?type=toSelesai'>
+                                    <Link href='/pages/tryout/semua-tryout'>
                                         <Button className="rounded-5 border-primer bg-transparent color-primer fw-bolder border-2 px-4">Lihat Semua ≫</Button>
                                     </Link>
                                 </Col>
                             </Row>
-                        )}
-                        <Row>
-                            {filteredTryOuts.slice(0, 4).map((item, index) => (
-                                <Col sm="12" lg="6" key={index} className="mb-3">
-                                    <Card className="w-100 h-100 p-3 cursor-pointer">
-                                        <Row className="h-100">
-                                            <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
-                                                <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
-                                                    <h3 className="text-white fw-bolder">SNBT</h3>
-                                                    <h1 className="fw-bolder m-0">6</h1>
-                                                </div>
-                                            </Col>
-                                            <Col xs='9' sm="9" lg="9" className="h-100">
-                                                <Link href={`/pages/tryout/question/${item.id}?type=toSelesai`}>
-                                                    <div className="h-100 d-flex flex-column justify-content-between">
-                                                        <span>
-                                                            <h5>{item.toName}</h5>
-                                                            <p>Tes Potensi Skolastik (TPS) dan Tes Literasii</p>
-                                                        </span>
-                                                        <span className="d-flex justify-content-between">
-                                                            <b>Rata-rata Nilai : 845</b>
-                                                            <b className="color-primer">Detail</b>
-                                                        </span>
+                            <Row>
+                                {dataTryOut.slice(0, 4).map((item, index) => (
+                                    <Col sm="12" lg="6" key={index} className="mb-3">
+                                        <Card className="w-100 h-100 p-3 cursor-pointer">
+                                            <Row className="h-100">
+                                                <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
+                                                    <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
+                                                        <h3 className="text-white fw-bolder">SNBT</h3>
+                                                        <h1 className="fw-bolder m-0">6</h1>
                                                     </div>
-                                                </Link>
-                                            </Col>
-                                        </Row>
-                                    </Card>
-                                </Col>
-                            ))}
-                            {/* <Col sm="12" lg="6">
+                                                </Col>
+                                                <Col xs='9' sm="9" lg="9" className="h-100">
+                                                    <Link href={`/pages/tryout/question/${item.id}`}>
+                                                        <div className="h-100 d-flex flex-column justify-content-between">
+                                                            <span>
+                                                                <h5>{item.toName}</h5>
+                                                                <p>Tes Potensi Skolastik (TPS) dan Tes Literasii</p>
+                                                            </span>
+                                                            <span className="d-flex justify-content-between">
+                                                                <b>Gratis dan Berbayar</b>
+                                                                <b className="color-primer">Mulai Mengerjakan</b>
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+                                                </Col>
+                                            </Row>
+                                        </Card>
+                                    </Col>
+                                ))}
+                            </Row>
+                        </section>
+                        <section className="mt-5">
+                            {filteredTryOuts == 0 ? (
+                                <div></div>
+                            ) : (
+                                <Row className="d-flex align-items-center justify-content-between mb-2">
+                                    <Col sm='12' lg='6'>
+                                        <h5 className="m-0">Try Out Selesai</h5>
+                                        <p>Lihat semua Try Out yang telah kamu ikuti</p>
+                                    </Col>
+                                    <Col sm='12' lg='6' className='text-lg-end'>
+                                        <Link href='/pages/tryout/semua-tryout?type=toSelesai'>
+                                            <Button className="rounded-5 border-primer bg-transparent color-primer fw-bolder border-2 px-4">Lihat Semua ≫</Button>
+                                        </Link>
+                                    </Col>
+                                </Row>
+                            )}
+                            <Row>
+                                {filteredTryOuts.slice(0, 4).map((item, index) => (
+                                    <Col sm="12" lg="6" key={index} className="mb-3">
+                                        <Card className="w-100 h-100 p-3 cursor-pointer">
+                                            <Row className="h-100">
+                                                <Col xs='3' sm="3" lg="3" className="p-0 ps-2">
+                                                    <div className="rounded-3 bg-primy h-100 w-100 d-flex justify-content-center align-items-center flex-column">
+                                                        <h3 className="text-white fw-bolder">SNBT</h3>
+                                                        <h1 className="fw-bolder m-0">6</h1>
+                                                    </div>
+                                                </Col>
+                                                <Col xs='9' sm="9" lg="9" className="h-100">
+                                                    <Link href={`/pages/tryout/question/${item.id}?type=toSelesai`}>
+                                                        <div className="h-100 d-flex flex-column justify-content-between">
+                                                            <span>
+                                                                <h5>{item.toName}</h5>
+                                                                <p>Tes Potensi Skolastik (TPS) dan Tes Literasii</p>
+                                                            </span>
+                                                            <span className="d-flex justify-content-between">
+                                                                <b>Rata-rata Nilai : 845</b>
+                                                                <b className="color-primer">Detail</b>
+                                                            </span>
+                                                        </div>
+                                                    </Link>
+                                                </Col>
+                                            </Row>
+                                        </Card>
+                                    </Col>
+                                ))}
+                                {/* <Col sm="12" lg="6">
                                 <Card className="w-100 h-100 p-3 cursor-pointer">
                                     <Row className="h-100">
                                         <Col sm="3" lg="3" className="p-0 ps-2">
@@ -214,10 +221,11 @@ const TryOutSaya = () => {
                                     </Row>
                                 </Card>
                             </Col> */}
-                        </Row>
-                    </section>
+                            </Row>
+                        </section>
+                    </div>
                 </div>
-            </div>
+            )}
         </ProtectedRoute>
     );
 };
